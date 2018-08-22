@@ -1,0 +1,5 @@
+rootProject.name = 'rundeck-verb-project'
+
+include	'verb-api',
+	'verb-client',
+	'verb-cli-test-harness'

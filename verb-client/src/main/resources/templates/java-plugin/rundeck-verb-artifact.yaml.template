@@ -1,0 +1,21 @@
+Name: ${pluginName}
+Description: My plugin description
+Author: ${author}
+AuthorId: ${authorId}
+ArtifactType: JAVA_PLUGIN
+Version: '0.1'
+RundeckCompatibility: '${rundeckVersion}'
+Support: Community
+License: Apache-2.0
+Id: ${newPluginId}
+Tags:
+    - ${pluginLang}
+ProvidesServices:
+    - ${providedService}
+ThirdPartyDependencies : None
+SourceLink: ${devBase}/${javaPluginClass}
+WebLink: ${devBase}/${javaPluginClass}/README.md
+LogoLink: ${devBase}/${javaPluginClass}/logo.png
+
+#If you host your plugin binary outside the repository please link to it here.
+#BinaryLink: https://mydomain.com/rundeck-plugin-binary/${javaPluginClass}.jar

@@ -1,0 +1,5 @@
+build.gradle.template->build.gradle
+rundeck-verb-artifact.yaml.template->rundeck-verb-artifact.yaml
+Plugin.java.template->src/main/java/com/plugin/${sanitizedPluginName}/${javaPluginClass}.java
+PluginSpec.groovy.template->src/test/groovy/com/plugin/${sanitizedPluginName}/${javaPluginClass}Spec.groovy
+
