@@ -17,10 +17,8 @@ package com.rundeck.verb.client.generator
 
 import com.rundeck.verb.Constants
 import com.rundeck.verb.ResponseBatch
-import com.rundeck.verb.client.TestUtils
 import com.rundeck.verb.client.validators.YamlArtifactMetaValidator
 import spock.lang.Specification
-
 
 class JavaPluginTemplateGeneratorTest extends Specification {
     YamlArtifactMetaValidator validator = new YamlArtifactMetaValidator()
@@ -39,28 +37,5 @@ class JavaPluginTemplateGeneratorTest extends Specification {
         response.batchSucceeded()
 
     }
-
-//    def "Create Templates"() {
-//        when:
-//        String destDirPath = "/opt/verb-plugin-dev/source"
-//        File destDir = new File(destDirPath)
-//        if(!destDir.exists()) destDir.mkdirs()
-//        JavaPluginTemplateGenerator generator = new JavaPluginTemplateGenerator()
-//        generator.createTemplate("My Great Notification Plugin","Notification",destDir.absolutePath)
-//        generator.createTemplate("Super Notifier","Notification",destDir.absolutePath)
-//        generator.createTemplate("Advanced Notifier","Notification",destDir.absolutePath)
-//        TestUtils.buildGradle(new File(destDir,"MyGreatNotificationPlugin"))
-//        TestUtils.buildGradle(new File(destDir,"SuperNotifier"))
-//        TestUtils.buildGradle(new File(destDir,"AdvancedNotifier"))
-//        TestUtils.copyToTestBinaryArtifactsResourceLocation("${destDirPath}/MyGreatNotificationPlugin/build/libs/MyGreatNotificationPlugin-0.1.0-SNAPSHOT.jar")
-//        TestUtils.copyToTestBinaryArtifactsResourceLocation("${destDirPath}/SuperNotifier/build/libs/SuperNotifier-0.1.0-SNAPSHOT.jar")
-//        TestUtils.copyToTestBinaryArtifactsResourceLocation("${destDirPath}/AdvancedNotifier/build/libs/AdvancedNotifier-0.1.0-SNAPSHOT.jar")
-//
-//
-//        then:
-//        destDir.listFiles().length == 3
-//
-//    }
-
 
 }

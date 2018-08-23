@@ -38,7 +38,7 @@ class FilesystemManifestCreatorTest extends Specification {
         //mapper.writeValue(new File("/opt/verb-repo.manifest"),manifest)
 
         then:
-        manifest.entries.size() == 3
+        manifest.entries.size() == 1
     }
 
 }

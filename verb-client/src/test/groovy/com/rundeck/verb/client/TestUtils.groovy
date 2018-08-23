@@ -15,6 +15,8 @@
  */
 package com.rundeck.verb.client
 
+import com.rundeck.verb.client.generator.JavaPluginTemplateGenerator
+
 
 class TestUtils {
 
@@ -31,5 +33,16 @@ class TestUtils {
         source.withInputStream {
             destFile << it
         }
+    }
+
+    static refreshTestBinaryArtifact() {
+        File destDir = File.createTempDir()
+        String destDirPath = destDir.absolutePath
+        if(!destDir.exists()) destDir.mkdirs()
+        JavaPluginTemplateGenerator generator = new JavaPluginTemplateGenerator()
+        generator.createTemplate("Super Notifier","Notification",destDir.absolutePath)
+        buildGradle(new File(destDir,"SuperNotifier"))
+        copyToTestBinaryArtifactsResourceLocation("${destDirPath}/SuperNotifier/build/libs/SuperNotifier-0.1.0-SNAPSHOT.jar")
+        println "generated at: ${destDirPath}"
     }
 }

@@ -76,7 +76,7 @@ class StorageTreeVerbArtifactRepository implements VerbArtifactRepository {
     InputStream getArtifactBinary(final String artifactId, final String version = null) {
         ManifestEntry entry = manifestService.getEntry(artifactId)
         String artifactVer = version ?: entry.currentVersion
-        String extension = ArtifactUtils.artifactTypeFromNice(entry.artifactType)
+        String extension = ArtifactUtils.artifactTypeFromNice(entry.artifactType).extension
         return storageTree.getResource(BINARY_BASE+ArtifactUtils.artifactBinaryFileName(artifactId, artifactVer, extension)).contents.inputStream
     }
 

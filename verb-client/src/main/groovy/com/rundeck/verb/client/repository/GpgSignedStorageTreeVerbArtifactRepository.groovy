@@ -79,7 +79,7 @@ class GpgSignedStorageTreeVerbArtifactRepository extends StorageTreeVerbArtifact
     InputStream getArtifactBinary(final String artifactId, final String version = null) {
         ManifestEntry entry = manifestService.getEntry(artifactId)
         String artifactVer = version ?: entry.currentVersion
-        String extension = ArtifactUtils.artifactTypeFromNice(entry.artifactType)
+        String extension = ArtifactUtils.artifactTypeFromNice(entry.artifactType).extension
         String binaryPath = ArtifactUtils.artifactBinaryFileName(artifactId,artifactVer,extension)
         InputStream artifactFile = storageTree.getResource(ARTIFACT_BASE+ binaryPath).contents.inputStream
         InputStream artifactSig = storageTree.getResource(ARTIFACT_BASE+ binaryPath+SIG_SUFFIX).contents.inputStream
