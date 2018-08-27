@@ -27,25 +27,6 @@ import spock.lang.Specification
 
 
 class FilesystemManifestCreatorTest extends Specification {
-    //ObjectMapper mapper = new ObjectMapper()
-
-    File artifactDir
-
-    def setup() {
-        artifactDir = new File(getClass().getClassLoader().getResource("binary-artifacts").toURI())
-    }
-
-//    def "Create Manifest"() {
-//        when:
-//        FilesystemManifestCreator creator = new FilesystemManifestCreator(artifactDir.absolutePath)
-//        ArtifactManifest manifest = creator.createManifest()
-//
-//        //println mapper.writeValueAsString(manifest)
-//        //mapper.writeValue(new File("/opt/verb-repo.manifest"),manifest)
-//
-//        then:
-//        manifest.entries.size() == 1
-//    }
 
     def "Create Manifests Handling multiple versions"() {
         setup:

@@ -33,6 +33,7 @@ class RundeckVerbArtifact implements VerbArtifact {
     String id
     String name
     String description
+    String organization
     Long releaseDate
     @JsonSerialize(using= ArtifactTypeSerializer)
     @JsonDeserialize(using= ArtifactTypeDeserializer)
@@ -59,6 +60,7 @@ class RundeckVerbArtifact implements VerbArtifact {
         entry.name = name
         entry.author = author
         entry.description = description
+        entry.organization = organization
         entry.support = ArtifactUtils.niceSupportLevelName(support)
         entry.artifactType = ArtifactUtils.niceArtifactTypeName(artifactType)
         entry.currentVersion = version

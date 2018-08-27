@@ -1,5 +1,6 @@
 Name: ${pluginName}
 Description: My plugin description
+Organization: My organization
 Author: ${author}
 AuthorId: ${authorId}
 ArtifactType: java-plugin

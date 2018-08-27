@@ -1,5 +1,6 @@
 Name: ${pluginName}
 Description: My script plugin description
+Organization: My organization
 Author: ${author}
 AuthorId: ${authorId}
 ArtifactType: script-plugin

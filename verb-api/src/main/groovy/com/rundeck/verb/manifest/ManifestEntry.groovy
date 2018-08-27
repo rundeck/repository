@@ -20,6 +20,7 @@ class ManifestEntry {
     String name
     String author
     String description
+    String organization
     String artifactType
     String support
     String currentVersion
