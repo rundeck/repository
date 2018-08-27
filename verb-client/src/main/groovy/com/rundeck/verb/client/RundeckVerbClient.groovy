@@ -84,6 +84,11 @@ class RundeckVerbClient implements VerbClient {
         return repositoryManager.getArtifact(repositoryName,artifactId, artifactVersion)
     }
 
+    @Override
+    InputStream getArtifactBinary(final String repositoryName, final String artifactId, final String artifactVersion) {
+        return repositoryManager.getArtifactBinary(repositoryName,artifactId, artifactVersion)
+    }
+
     private static final Map clientProps
     static Map getClientProperties() { clientProps }
 

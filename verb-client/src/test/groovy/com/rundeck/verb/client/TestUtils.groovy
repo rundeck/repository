@@ -17,6 +17,8 @@ package com.rundeck.verb.client
 
 import com.rundeck.verb.client.generator.JavaPluginTemplateGenerator
 
+import java.util.zip.ZipFile
+
 
 class TestUtils {
 
@@ -44,5 +46,25 @@ class TestUtils {
         buildGradle(new File(destDir,"SuperNotifier"))
         copyToTestBinaryArtifactsResourceLocation("${destDirPath}/SuperNotifier/build/libs/SuperNotifier-0.1.0-SNAPSHOT.jar")
         println "generated at: ${destDirPath}"
+    }
+
+    static void zipDir(final String dirToZip) {
+        File rootDir = new File(dirToZip)
+        def zipp = new  ProcessBuilder("zip","-r",rootDir.name+".zip", rootDir.name+"/").directory(rootDir.parentFile).start()
+        zipp.waitFor()
+    }
+
+    static void setVersion(final String sartifactFile, final String newVersion) {
+        File artifactFile = new File(sartifactFile)
+        List<String> artifactLines = artifactFile.readLines()
+        artifactFile.withOutputStream { out ->
+            artifactLines.each { line ->
+                if(line.startsWith("Version:")) {
+                    out << "Version: '${newVersion}'\n"
+                } else {
+                    out << line + "\n"
+                }
+            }
+        }
     }
 }

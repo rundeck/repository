@@ -1,0 +1,21 @@
+Name: Super Notifier
+Description: My plugin description
+Author: Stephen Joyner
+AuthorId: sjoyner@rundeck.com
+ArtifactType: JAVA_PLUGIN
+Version: '0.1'
+RundeckCompatibility: '3.0.x'
+Support: Community
+License: Apache-2.0
+Id: 8fb8b21df658
+Tags:
+    - java
+ProvidesServices:
+    - Notification
+ThirdPartyDependencies : None
+SourceLink: /opt/verb-plugin-dev/sources/SuperNotifier
+WebLink: /opt/verb-plugin-dev/sources/SuperNotifier/README.md
+LogoLink: /opt/verb-plugin-dev/sources/SuperNotifier/logo.png
+
+#If you host your plugin binary outside the repository please link to it here.
+#BinaryLink: https://mydomain.com/rundeck-plugin-binary/SuperNotifier.jar

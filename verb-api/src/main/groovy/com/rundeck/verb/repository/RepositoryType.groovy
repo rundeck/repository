@@ -17,5 +17,5 @@ package com.rundeck.verb.repository
 
 
 enum RepositoryType {
-    RUNDECK, PRIVATE, PRIVATE_SIGNED
+    FILE, STORAGE_TREE, HTTP, HTTPS
 }

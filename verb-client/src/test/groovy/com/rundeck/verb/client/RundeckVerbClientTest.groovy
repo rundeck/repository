@@ -18,7 +18,7 @@ package com.rundeck.verb.client
 
 import com.rundeck.verb.client.artifact.RundeckVerbArtifact
 import com.rundeck.verb.client.artifact.StorageTreeArtifactInstaller
-import com.rundeck.verb.client.repository.FilesystemRepositoryFactory
+import com.rundeck.verb.client.repository.VerbRepositoryFactory
 import com.rundeck.verb.client.repository.RundeckRepositoryManager
 import com.rundeck.verb.client.util.ArtifactUtils
 import org.rundeck.storage.data.DataUtil
@@ -30,16 +30,18 @@ import java.util.zip.ZipFile
 
 class RundeckVerbClientTest extends Specification {
 
-    def "Upload Artifact To Repo"() {
-        setup:
+    def setupSpec() {
         File repoRoot = new File("/tmp/verb-repo")
         if(repoRoot.exists()) repoRoot.deleteDir()
         repoRoot.mkdirs()
-        new File("/tmp/verb-repo/manifest") << "{}" //Init empty manifest
+        new File("/tmp/verb-repo/manifest.json") << "{}" //Init empty manifest
+    }
+
+    def "Upload Artifact To Repo"() {
 
         when:
         RundeckVerbClient client = new RundeckVerbClient()
-        client.repositoryManager = new RundeckRepositoryManager(new FilesystemRepositoryFactory())
+        client.repositoryManager = new RundeckRepositoryManager(new VerbRepositoryFactory())
         client.repositoryManager.setRepositoryDefinitionListDatasourceUrl(getClass().getClassLoader().getResource("repository-definition-list.yaml").toString())
 
         def response = client.uploadArtifact("private",getClass().getClassLoader().getResourceAsStream("binary-artifacts/SuperNotifier-0.1.0-SNAPSHOT.jar"))
@@ -60,7 +62,7 @@ class RundeckVerbClientTest extends Specification {
         when:
         RundeckVerbClient client = new RundeckVerbClient()
         client.artifactInstaller = new StorageTreeArtifactInstaller(FileTreeUtil.forRoot(pluginRoot, DataUtil.contentFactory()))
-        client.repositoryManager = new RundeckRepositoryManager(new FilesystemRepositoryFactory())
+        client.repositoryManager = new RundeckRepositoryManager(new VerbRepositoryFactory())
         client.repositoryManager.setRepositoryDefinitionListDatasourceUrl(getClass().getClassLoader().getResource("repository-definition-list.yaml").toString())
 
         ZipFile bin = new ZipFile(new File(getClass().getClassLoader().getResource("binary-artifacts/SuperNotifier-0.1.0-SNAPSHOT.jar").toURI()))
@@ -80,7 +82,7 @@ class RundeckVerbClientTest extends Specification {
         given:
 
         RundeckVerbClient client = new RundeckVerbClient()
-        client.repositoryManager = new RundeckRepositoryManager(new FilesystemRepositoryFactory())
+        client.repositoryManager = new RundeckRepositoryManager(new VerbRepositoryFactory())
         client.repositoryManager.setRepositoryDefinitionListDatasourceUrl(getClass().getClassLoader().getResource("repository-definition-list.yaml").toString())
         client.syncInstalledManifests()
 

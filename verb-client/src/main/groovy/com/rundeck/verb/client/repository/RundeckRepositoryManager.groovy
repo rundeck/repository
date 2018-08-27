@@ -43,7 +43,7 @@ class RundeckRepositoryManager implements RepositoryManager {
     private RepositoryFactory repositoryFactory
 
     RundeckRepositoryManager() {
-        this(new FilesystemRepositoryFactory())
+        this(new VerbRepositoryFactory())
         String defaultRepoListUrl = RundeckVerbClient.clientProperties[
                 RundeckVerbConfigurationProperties.CLIENT_DEFAULT_REPO_DEFN_LIST]
         println "default repo list " + defaultRepoListUrl

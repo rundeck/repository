@@ -49,7 +49,7 @@ enum ArtifactType {
             return "zip"
         }
     },
-    ZIP_PLUGIN {
+    SCRIPT_PLUGIN {
         @Override
         ArtifactGroup getGroup() {
             return ArtifactGroup.PLUGIN

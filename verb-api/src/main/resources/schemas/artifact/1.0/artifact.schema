@@ -32,7 +32,7 @@
         },
         "ArtifactType": {
             "description":"The artifact type",
-            "enum": ["JAVA_PLUGIN","UI_PLUGIN","ZIP_PLUGIN"]
+            "enum": ["JAVA_PLUGIN","UI_PLUGIN","SCRIPT_PLUGIN","java-plugin","ui-plugin","script-plugin"]
         },
         "Support": {
             "description":"Support level offered for the artifact",

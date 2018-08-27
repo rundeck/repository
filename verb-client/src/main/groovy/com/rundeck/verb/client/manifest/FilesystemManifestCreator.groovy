@@ -20,11 +20,12 @@ import com.rundeck.verb.client.artifact.RundeckVerbArtifact
 import com.rundeck.verb.client.util.ArtifactUtils
 import com.rundeck.verb.manifest.ArtifactManifest
 import com.rundeck.verb.manifest.ManifestCreator
+import com.rundeck.verb.manifest.ManifestEntry
 
 import java.util.zip.ZipFile
 
 
-class FilesystemManifestCreator implements ManifestCreator {
+class FilesystemManifestCreator extends AbstractManifestCreator {
 
     private final String artifactScanDir
 
@@ -39,7 +40,7 @@ class FilesystemManifestCreator implements ManifestCreator {
             throw new FileNotFoundException("${artifactScanDir} does not exists or is not a directory.")
         }
         ArtifactManifest manifest = new ArtifactManifest()
-        scanDir.traverse(type: groovy.io.FileType.FILES,nameFilter: ~/.*\.jar|zip|yaml/) { file ->
+        scanDir.traverse(type: groovy.io.FileType.FILES,nameFilter: ~/.*[\.jar|\.zip|\.yaml]$/) { file ->
             ArtifactType guessed = guessArtifactType(file)
             InputStream metaInStream
             if(guessed == ArtifactType.META) {
@@ -49,14 +50,16 @@ class FilesystemManifestCreator implements ManifestCreator {
                 metaInStream = ArtifactUtils.extractArtifactMetaFromZip(new ZipFile(file))
             }
             RundeckVerbArtifact artifact = ArtifactUtils.createArtifactFromStream(metaInStream)
-            manifest.entries.add(artifact.createManifestEntry())
+            ManifestEntry entry = artifact.createManifestEntry()
+            entry.lastRelease = file.lastModified()
+            addEntryToManifest(manifest,entry)
         }
         return manifest
     }
 
     private ArtifactType guessArtifactType(final File file) {
         if(file.name.endsWith("jar")) return ArtifactType.JAVA_PLUGIN
-        if(file.name.endsWith("zip")) return ArtifactType.ZIP_PLUGIN
+        if(file.name.endsWith("zip")) return ArtifactType.SCRIPT_PLUGIN
         return ArtifactType.META
     }
 }

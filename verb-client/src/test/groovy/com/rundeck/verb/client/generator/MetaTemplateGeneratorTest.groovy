@@ -13,19 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.rundeck.verb.repository
+package com.rundeck.verb.client.generator
 
-import com.rundeck.verb.ResponseBatch
-import com.rundeck.verb.artifact.VerbArtifact
-import com.rundeck.verb.manifest.ManifestService
+import spock.lang.Specification
 
 
-interface VerbArtifactRepository {
-    RepositoryDefinition getRepositoryDefinition()
-    VerbArtifact getArtifact(String artifactId, String version)
-    InputStream getArtifactBinary(String artifactId, String version)
-    ResponseBatch uploadArtifact(InputStream artifactInputStream)
-    ManifestService getManifestService()
-    void configure(Map configProperties)
+class MetaTemplateGeneratorTest extends Specification {
+    def "Create Meta Template"() {
+        setup:
+        File destDir = File.createTempDir()
+        println destDir.absolutePath
 
+        when:
+        MetaTemplateGenerator gen = new MetaTemplateGenerator()
+        def rbatch = gen.createTemplate("My Artifact","Notification",destDir.absolutePath)
+
+        then:
+        rbatch.batchSucceeded()
+        new File(destDir,"my-artifact/rundeck-verb-artifact.yaml").exists()
+
+    }
 }

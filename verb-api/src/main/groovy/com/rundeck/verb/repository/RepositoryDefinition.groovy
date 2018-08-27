@@ -21,5 +21,6 @@ class RepositoryDefinition {
     URL repositoryLocation
     URL manifestLocation
     RepositoryType type
+    RepositoryOwner owner
     Map configProperties
 }

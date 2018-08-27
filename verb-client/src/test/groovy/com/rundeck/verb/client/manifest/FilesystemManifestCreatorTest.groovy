@@ -15,8 +15,14 @@
  */
 package com.rundeck.verb.client.manifest
 
-import com.fasterxml.jackson.databind.ObjectMapper
+
+import com.google.common.io.Files
+import com.rundeck.verb.client.TestUtils
+import com.rundeck.verb.client.generator.MetaTemplateGenerator
+import com.rundeck.verb.client.generator.ScriptPluginTemplateGenerator
+import com.rundeck.verb.client.util.ArtifactUtils
 import com.rundeck.verb.manifest.ArtifactManifest
+import com.rundeck.verb.manifest.ManifestEntry
 import spock.lang.Specification
 
 
@@ -29,16 +35,49 @@ class FilesystemManifestCreatorTest extends Specification {
         artifactDir = new File(getClass().getClassLoader().getResource("binary-artifacts").toURI())
     }
 
-    def "Create Manifest"() {
-        when:
-        FilesystemManifestCreator creator = new FilesystemManifestCreator(artifactDir.absolutePath)
-        ArtifactManifest manifest = creator.createManifest()
+//    def "Create Manifest"() {
+//        when:
+//        FilesystemManifestCreator creator = new FilesystemManifestCreator(artifactDir.absolutePath)
+//        ArtifactManifest manifest = creator.createManifest()
+//
+//        //println mapper.writeValueAsString(manifest)
+//        //mapper.writeValue(new File("/opt/verb-repo.manifest"),manifest)
+//
+//        then:
+//        manifest.entries.size() == 1
+//    }
 
-        //println mapper.writeValueAsString(manifest)
-        //mapper.writeValue(new File("/opt/verb-repo.manifest"),manifest)
+    def "Create Manifests Handling multiple versions"() {
+        setup:
+        File tempManifestDir = File.createTempDir()
+        println "manifest dir: ${tempManifestDir.absolutePath}"
+        File tempScriptDir = File.createTempDir()
+        println "script dir: ${tempScriptDir.absolutePath}"
+        ScriptPluginTemplateGenerator sgen = new ScriptPluginTemplateGenerator()
+        String artifactId = ArtifactUtils.archiveNameToId("Script Plugin Multiver")
+        sgen.createTemplate("Script Plugin Multiver","Notification",tempScriptDir.absolutePath)
+        TestUtils.zipDir(tempScriptDir.absolutePath+"/script-plugin-multiver")
+        Files.move(new File(tempScriptDir,"script-plugin-multiver.zip"),new File(tempManifestDir,"${artifactId}-0.1.zip"))
+        Thread.sleep(1000)
+        TestUtils.setVersion(tempScriptDir.absolutePath+"/script-plugin-multiver/rundeck-verb-artifact.yaml","1.0")
+        TestUtils.zipDir(tempScriptDir.absolutePath+"/script-plugin-multiver")
+        Files.move(new File(tempScriptDir,"script-plugin-multiver.zip"),new File(tempManifestDir,"${artifactId}-1.0.zip"))
+        MetaTemplateGenerator metaGen = new MetaTemplateGenerator()
+        metaGen.createTemplate("Other Artifact","WorkflowNodeStep",tempManifestDir.absolutePath)
+
+
+        when:
+        FilesystemManifestCreator creator = new FilesystemManifestCreator(tempManifestDir.absolutePath)
+        ArtifactManifest manifest = creator.createManifest()
+        ManifestEntry multiVer = manifest.entries.find { it.id == artifactId}
 
         then:
-        manifest.entries.size() == 1
+        manifest.entries.size() == 2
+        multiVer.currentVersion == "1.0"
+        multiVer.oldVersions == ["0.1"]
+
+
     }
+
 
 }

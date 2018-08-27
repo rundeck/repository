@@ -13,19 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.rundeck.verb.repository
+package com.rundeck.verb.client.repository.tree
 
-import com.rundeck.verb.ResponseBatch
-import com.rundeck.verb.artifact.VerbArtifact
-import com.rundeck.verb.manifest.ManifestService
+import org.rundeck.storage.api.Tree
 
 
-interface VerbArtifactRepository {
-    RepositoryDefinition getRepositoryDefinition()
-    VerbArtifact getArtifact(String artifactId, String version)
-    InputStream getArtifactBinary(String artifactId, String version)
-    ResponseBatch uploadArtifact(InputStream artifactInputStream)
-    ManifestService getManifestService()
-    void configure(Map configProperties)
-
+interface TreeProvider {
+    Tree getTree(String repositoryName)
 }

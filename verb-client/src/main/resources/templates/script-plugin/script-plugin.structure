@@ -1,0 +1,5 @@
+rundeck-verb-artifact.yaml.template->rundeck-verb-artifact.yaml
+plugin.yaml.template->plugin.yaml
+exec.template->contents/exec
+icon.png->resources/icon.png
+

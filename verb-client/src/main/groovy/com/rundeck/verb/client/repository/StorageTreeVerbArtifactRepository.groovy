@@ -141,6 +141,9 @@ class StorageTreeVerbArtifactRepository implements VerbArtifactRepository {
         return manifestService
     }
 
+    @Override
+    void configure(final Map configProperties) { }
+
     void recreateAndSaveManifest() {
         //TODO: this assumes the URL used in the repo defn is a writable location.
         ArtifactUtils.writeArtifactManifestToFile(manifestCreator.createManifest(),new File(repositoryDefinition.manifestLocation.toURI()).newOutputStream())

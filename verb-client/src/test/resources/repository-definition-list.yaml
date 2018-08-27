@@ -2,5 +2,6 @@ repositories:
     -
         repositoryName: private
         repositoryLocation: file:/tmp/verb-repo
-        manifestLocation: file:/tmp/verb-repo/manifest
-        type: PRIVATE
+        manifestLocation: file:/tmp/verb-repo/manifest.json
+        type: FILE
+        owner: PRIVATE

@@ -20,16 +20,15 @@ import com.dtolabs.rundeck.core.storage.StorageUtil
 import com.rundeck.verb.client.artifact.RundeckVerbArtifact
 import com.rundeck.verb.client.util.ArtifactUtils
 import com.rundeck.verb.manifest.ArtifactManifest
-import com.rundeck.verb.manifest.ManifestCreator
 import com.rundeck.verb.manifest.ManifestEntry
 import org.rundeck.storage.api.Tree
 import org.rundeck.storage.data.DataContent
 
-class StorageTreeManifestCreator implements ManifestCreator {
+class StorageTreeManifestCreator extends AbstractManifestCreator {
 
-    private final Tree<DataContent> repoTree
+    private final Tree<ResourceMeta> repoTree
 
-    StorageTreeManifestCreator(Tree<DataContent> repoTree) {
+    StorageTreeManifestCreator(Tree<ResourceMeta> repoTree) {
         this.repoTree = repoTree
     }
 
@@ -39,8 +38,8 @@ class StorageTreeManifestCreator implements ManifestCreator {
         repoTree.listDirectoryResources("artifacts").each { resource ->
             RundeckVerbArtifact artifact = ArtifactUtils.createArtifactFromStream(resource.contents.inputStream)
             ManifestEntry entry = artifact.createManifestEntry()
-            entry.lastRelease = resource.contents.meta.get(StorageUtil.RES_META_RUNDECK_CONTENT_CREATION_TIME)
-            manifest.entries.add(entry)
+            entry.lastRelease = resource.contents.creationTime.time
+            addEntryToManifest(manifest,entry)
         }
 
         return manifest

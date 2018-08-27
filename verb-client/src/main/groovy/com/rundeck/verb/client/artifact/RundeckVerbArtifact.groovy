@@ -66,6 +66,7 @@ class RundeckVerbArtifact implements VerbArtifact {
         entry.providesServices = providesServices
         entry.tags = tags
         entry.lastRelease = releaseDate
+        entry.binaryLink = binaryLink
         return entry
     }
 }

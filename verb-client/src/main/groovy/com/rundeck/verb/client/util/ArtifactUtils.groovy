@@ -75,9 +75,6 @@ class ArtifactUtils {
     static boolean isBinaryPlugin(final File artifactFile) {
         try {
             ZipFile zip = new ZipFile(artifactFile)
-            zip.entries().each {
-                println it.name
-            }
             ZipEntry e = zip.getEntry(Constants.ARTIFACT_META_FILE_NAME)
             if(e) return true
         } catch(ZipException zex) {
@@ -88,6 +85,10 @@ class ArtifactUtils {
 
     static InputStream extractArtifactMetaFromZip(final ZipFile artifactZip) {
         ZipEntry emeta = artifactZip.getEntry(Constants.ARTIFACT_META_FILE_NAME)
+        if(!emeta) {
+            ZipEntry root = artifactZip.entries().nextElement()
+            emeta = artifactZip.getEntry(root.name+Constants.ARTIFACT_META_FILE_NAME)
+        }
         artifactZip.getInputStream(emeta)
     }
 
@@ -123,15 +124,19 @@ class ArtifactUtils {
     }
 
     static String artifactBinaryFileName(final String artifactId, final String artifactVersion, final String artifactExtension) {
-        return artifactId+"-"+artifactVersion+artifactExtension
+        return artifactId+"-"+artifactVersion+"."+artifactExtension
     }
 
     static String artifactMetaFileName(final VerbArtifact verbArtifact) {
-        return verbArtifact.id+"-"+verbArtifact.version+".yaml"
+        return artifactMetaFileName(verbArtifact.id,verbArtifact.version)
     }
 
     static  String artifactBinaryFileName(final VerbArtifact verbArtifact) {
-        return verbArtifact.id+"-"+verbArtifact.version+verbArtifact.artifactType.extension
+        return artifactBinaryFileName(verbArtifact.id,verbArtifact.version,verbArtifact.artifactType.extension)
+    }
+
+    static String sanitizedPluginName(final String artifactName) {
+        return artifactName.replace(" ", "-").replaceAll("[^a-zA-Z\\-]","").toLowerCase()
     }
 
     static String archiveNameToId(String archiveName) {

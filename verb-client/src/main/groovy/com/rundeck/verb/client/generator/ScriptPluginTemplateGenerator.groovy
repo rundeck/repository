@@ -21,11 +21,11 @@ import com.rundeck.verb.ResponseMessage
 import com.rundeck.verb.client.RundeckVerbClient
 import com.rundeck.verb.client.util.ArtifactUtils
 import groovy.text.GStringTemplateEngine
-import org.apache.commons.lang.WordUtils
 
-class JavaPluginTemplateGenerator implements ArtifactTypeTemplateGenerator {
-    private static final String TEMPLATE_BASE = "templates/java-plugin/"
-    private static final String JAVA_STRUCTURE = TEMPLATE_BASE + "java-plugin.structure"
+
+class ScriptPluginTemplateGenerator implements ArtifactTypeTemplateGenerator {
+    private static final String TEMPLATE_BASE = "templates/script-plugin/"
+    private static final String SCRIPT_STRUCTURE = TEMPLATE_BASE + "script-plugin.structure"
 
     GStringTemplateEngine engine = new GStringTemplateEngine()
     private Map templateProperties = new HashMap(RundeckVerbClient.clientProperties)
@@ -37,20 +37,19 @@ class JavaPluginTemplateGenerator implements ArtifactTypeTemplateGenerator {
             templateProperties["newPluginId"] = ArtifactUtils.archiveNameToId(artifactName)
             templateProperties["pluginName"] = artifactName
             templateProperties["sanitizedPluginName"] = ArtifactUtils.sanitizedPluginName(artifactName)
-            templateProperties["javaPluginClass"] = validJavaPluginClassFromName(artifactName)
             templateProperties["providedService"] = providedService
             templateProperties["currentDate"] = new Date().format("MM/dd/yyyy")
-            templateProperties["pluginLang"] = "java"
-            String destDir = destinationDir + "/" + templateProperties.javaPluginClass
+            templateProperties["pluginLang"] = "script"
+            String destDir = destinationDir + "/" + templateProperties.sanitizedPluginName
             File destDirFile = new File(destDir)
             if(destDirFile.exists()) {
-                batch.addMessage(new ResponseMessage(code:ResponseCodes.TEMPLATE_GENERATION_LOCATION_EXISTS,message: "Location already exists. Aborting to prevent overwrite."))
+                batch.addMessage(new ResponseMessage(code: ResponseCodes.TEMPLATE_GENERATION_LOCATION_EXISTS, message: "Location already exists. Aborting to prevent overwrite."))
                 return batch
             } else {
                 destDirFile.mkdirs()
             }
             StringWriter structureWriter = new StringWriter()
-            engine.createTemplate(getClass().getClassLoader().getResource(JAVA_STRUCTURE)).
+            engine.createTemplate(getClass().getClassLoader().getResource(SCRIPT_STRUCTURE)).
                     make(templateProperties).
                     writeTo(structureWriter)
 
@@ -70,8 +69,12 @@ class JavaPluginTemplateGenerator implements ArtifactTypeTemplateGenerator {
                 File destFile = new File(destDir, remainingPath + "/" + fileName)
 
                 FileWriter fileOut = new FileWriter(destFile)
-                engine.createTemplate(template).make(templateProperties).writeTo(fileOut)
-                fileOut.flush()
+                if(template.toString().endsWith(".template")) {
+                    engine.createTemplate(template).make(templateProperties).writeTo(fileOut)
+                    fileOut.flush()
+                } else {
+                    fileOut << template.openStream()
+                }
             }
             batch.addMessage(new ResponseMessage(code: ResponseCodes.SUCCESS,message: "Created plugin at: ${destDir}"))
         } catch(Exception ex) {
@@ -80,9 +83,4 @@ class JavaPluginTemplateGenerator implements ArtifactTypeTemplateGenerator {
         }
         return batch
     }
-
-    private def validJavaPluginClassFromName(final String artifactName) {
-        return WordUtils.capitalizeFully(artifactName.replaceAll("[^a-zA-Z\\s]","")).replace(" ","")
-    }
-
 }

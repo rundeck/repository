@@ -15,17 +15,7 @@
  */
 package com.rundeck.verb.repository
 
-import com.rundeck.verb.ResponseBatch
-import com.rundeck.verb.artifact.VerbArtifact
-import com.rundeck.verb.manifest.ManifestService
 
-
-interface VerbArtifactRepository {
-    RepositoryDefinition getRepositoryDefinition()
-    VerbArtifact getArtifact(String artifactId, String version)
-    InputStream getArtifactBinary(String artifactId, String version)
-    ResponseBatch uploadArtifact(InputStream artifactInputStream)
-    ManifestService getManifestService()
-    void configure(Map configProperties)
-
+enum RepositoryOwner {
+    PRIVATE, RUNDECK
 }
