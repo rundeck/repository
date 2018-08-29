@@ -15,12 +15,13 @@
  */
 package com.rundeck.verb.client
 
-
+import com.dtolabs.rundeck.core.storage.StorageTreeImpl
 import com.rundeck.verb.client.artifact.RundeckVerbArtifact
 import com.rundeck.verb.client.artifact.StorageTreeArtifactInstaller
 import com.rundeck.verb.client.repository.VerbRepositoryFactory
 import com.rundeck.verb.client.repository.RundeckRepositoryManager
 import com.rundeck.verb.client.util.ArtifactUtils
+import com.rundeck.verb.client.util.ResourceFactory
 import org.rundeck.storage.data.DataUtil
 import org.rundeck.storage.data.file.FileTreeUtil
 import spock.lang.Specification
@@ -61,7 +62,8 @@ class RundeckVerbClientTest extends Specification {
 
         when:
         RundeckVerbClient client = new RundeckVerbClient()
-        client.artifactInstaller = new StorageTreeArtifactInstaller(FileTreeUtil.forRoot(pluginRoot, DataUtil.contentFactory()))
+        client.artifactInstaller = new StorageTreeArtifactInstaller(new StorageTreeImpl(FileTreeUtil.forRoot(pluginRoot, new ResourceFactory())))
+        VerbRepositoryFactory repositoryFactory = new VerbRepositoryFactory()
         client.repositoryManager = new RundeckRepositoryManager(new VerbRepositoryFactory())
         client.repositoryManager.setRepositoryDefinitionListDatasourceUrl(getClass().getClassLoader().getResource("repository-definition-list.yaml").toString())
 
@@ -88,6 +90,23 @@ class RundeckVerbClientTest extends Specification {
 
         when:
         def manifestSearchResults = client.listArtifacts()
+
+        then:
+        manifestSearchResults.size() == 1
+        manifestSearchResults[0].results.size() == 1
+
+    }
+
+    def "List Artifacts By Repo"() {
+        given:
+
+        RundeckVerbClient client = new RundeckVerbClient()
+        client.repositoryManager = new RundeckRepositoryManager(new VerbRepositoryFactory())
+        client.repositoryManager.setRepositoryDefinitionListDatasourceUrl(getClass().getClassLoader().getResource("repository-definition-list.yaml").toString())
+        client.syncInstalledManifests()
+
+        when:
+        def manifestSearchResults = client.listArtifacts("private")
 
         then:
         manifestSearchResults.size() == 1

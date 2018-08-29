@@ -15,8 +15,7 @@
  */
 package com.rundeck.verb.client.repository
 
-import com.dtolabs.rundeck.core.storage.ResourceMeta
-import com.dtolabs.rundeck.core.storage.StorageUtil
+import com.dtolabs.rundeck.core.storage.StorageTree
 import com.rundeck.verb.ResponseBatch
 import com.rundeck.verb.artifact.VerbArtifact
 import com.rundeck.verb.client.artifact.RundeckVerbArtifact
@@ -24,11 +23,10 @@ import com.rundeck.verb.client.signing.GpgPassphraseProvider
 import com.rundeck.verb.client.signing.GpgTools
 import com.rundeck.verb.client.util.ArtifactFileset
 import com.rundeck.verb.client.util.ArtifactUtils
+import com.rundeck.verb.client.util.ResourceFactory
 import com.rundeck.verb.events.RepositoryEventEmitter
 import com.rundeck.verb.manifest.ManifestEntry
-import com.rundeck.verb.manifest.ManifestService
 import com.rundeck.verb.repository.RepositoryDefinition
-import org.rundeck.storage.api.Tree
 import org.rundeck.storage.data.DataUtil
 
 
@@ -38,17 +36,17 @@ class GpgSignedStorageTreeVerbArtifactRepository extends StorageTreeVerbArtifact
     File gpgPrivateKey
 
     GpgPassphraseProvider passphraseProvider
+    static final ResourceFactory resourceFactory = new ResourceFactory()
 
     GpgSignedStorageTreeVerbArtifactRepository(
             final File gpgPublicKey,
             final File gpgPrivateKey,
             final GpgPassphraseProvider passphraseProvider,
-            final Tree<ResourceMeta> storageTree,
+            final StorageTree storageTree,
             final RepositoryDefinition repositoryDefinition,
-            final ManifestService manifestService,
             final RepositoryEventEmitter eventEmitter
     ) {
-        super(storageTree, repositoryDefinition, manifestService, eventEmitter)
+        super(storageTree, repositoryDefinition, eventEmitter)
         this.gpgPublicKey = gpgPublicKey
         this.gpgPrivateKey = gpgPrivateKey
         this.passphraseProvider = passphraseProvider
@@ -58,11 +56,10 @@ class GpgSignedStorageTreeVerbArtifactRepository extends StorageTreeVerbArtifact
             final File gpgPublicKey,
             final File gpgPrivateKey,
             final GpgPassphraseProvider passphraseProvider,
-            final Tree<ResourceMeta> storageTree,
-            final RepositoryDefinition repositoryDefinition,
-            final ManifestService manifestService
+            final StorageTree storageTree,
+            final RepositoryDefinition repositoryDefinition
     ) {
-        this(gpgPublicKey, gpgPrivateKey, passphraseProvider, storageTree, repositoryDefinition, manifestService, null)
+        this(gpgPublicKey, gpgPrivateKey, passphraseProvider, storageTree, repositoryDefinition, null)
     }
 
     @Override
@@ -101,7 +98,7 @@ class GpgSignedStorageTreeVerbArtifactRepository extends StorageTreeVerbArtifact
             File binarySig = File.createTempFile("binary","sig")
             GpgTools.signDetached(false,gpgPrivateKey.newInputStream(),artifactFileset.artifactBinary.newInputStream(),binarySig.newOutputStream(),passphraseProvider)
             String sigPath = BINARY_BASE+ArtifactUtils.artifactBinaryFileName(artifactFileset.artifact)+".sig"
-            def sigResource = DataUtil.withStream(binarySig.newInputStream(), [:], StorageUtil.factory())
+            def sigResource = DataUtil.withStream(binarySig.newInputStream(), [:], resourceFactory)
             storageTree.createResource(sigPath,sigResource)
             responseBatch.messages.addAll(uploadArtifactBinary(artifactFileset.artifact, artifactFileset.artifactBinary.newInputStream()).messages)
         }
@@ -119,7 +116,7 @@ class GpgSignedStorageTreeVerbArtifactRepository extends StorageTreeVerbArtifact
             File metaSig = File.createTempFile("meta","sig")
             GpgTools.signDetached(false,gpgPrivateKey.newInputStream(),new ByteArrayInputStream(bout.toByteArray()),metaSig.newOutputStream(),passphraseProvider)
             String sigPath = ARTIFACT_BASE+ArtifactUtils.artifactMetaFileName(artifact)+".sig"
-            def sigResource = DataUtil.withStream(metaSig.newInputStream(), [:], StorageUtil.factory())
+            def sigResource = DataUtil.withStream(metaSig.newInputStream(), [:], resourceFactory)
             storageTree.createResource(sigPath,sigResource)
             artifactStream = new ByteArrayInputStream(bout.toByteArray())
         } else {

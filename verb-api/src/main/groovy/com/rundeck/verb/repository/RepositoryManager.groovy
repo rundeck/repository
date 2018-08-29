@@ -30,7 +30,8 @@ interface RepositoryManager {
     ResponseBatch uploadArtifact(String repositoryName, InputStream artifactInputStream)
     Collection<ManifestSearchResult> searchRepositories(ManifestSearch search)
     ManifestSearchResult searchRepository(String repositoryName, ManifestSearch search)
-    Collection<ManifestSearchResult> listArtifacts(int offset, int max)
+    Collection<ManifestSearchResult> listArtifacts(Integer offset, Integer max)
+    Collection<ManifestSearchResult> listArtifacts(String repoName, Integer offset, Integer max)
     VerbArtifact getArtifact(String repositoryName, String artifactId, String artifactVersion)
     InputStream getArtifactBinary(String repositoryName, String artifactId, String artifactVersion)
 }

@@ -15,7 +15,11 @@
  */
 package com.rundeck.verb.client
 
+import com.dtolabs.rundeck.core.storage.BaseStreamResource
+import com.dtolabs.rundeck.core.storage.ResourceMeta
 import com.rundeck.verb.client.generator.JavaPluginTemplateGenerator
+import org.rundeck.storage.api.ContentFactory
+import org.rundeck.storage.api.HasInputStream
 
 import java.util.zip.ZipFile
 
@@ -65,6 +69,17 @@ class TestUtils {
                     out << line + "\n"
                 }
             }
+        }
+    }
+
+    static ResourceFactory resourceFactory() {
+        return new ResourceFactory()
+    }
+
+    private static class ResourceFactory implements ContentFactory<ResourceMeta> {
+        @Override
+        public ResourceMeta create(HasInputStream source, Map<String, String> meta) {
+            return new BaseStreamResource(meta, source)
         }
     }
 }

@@ -15,9 +15,9 @@
  */
 package com.rundeck.verb.client.repository.tree
 
-import org.rundeck.storage.api.Tree
+import com.dtolabs.rundeck.core.storage.StorageTree
 
 
 interface TreeProvider {
-    Tree getTree(String repositoryName)
+    StorageTree getTree(String treeName)
 }

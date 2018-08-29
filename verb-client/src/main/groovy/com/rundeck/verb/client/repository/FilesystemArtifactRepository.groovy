@@ -21,9 +21,9 @@ import com.rundeck.verb.ResponseMessage
 import com.rundeck.verb.artifact.VerbArtifact
 import com.rundeck.verb.client.artifact.RundeckVerbArtifact
 import com.rundeck.verb.client.manifest.FilesystemManifestCreator
+import com.rundeck.verb.client.manifest.MemoryManifestService
 import com.rundeck.verb.client.util.ArtifactFileset
 import com.rundeck.verb.client.util.ArtifactUtils
-import com.rundeck.verb.manifest.ManifestCreator
 import com.rundeck.verb.manifest.ManifestEntry
 import com.rundeck.verb.manifest.ManifestService
 import com.rundeck.verb.repository.RepositoryDefinition
@@ -38,10 +38,9 @@ class FilesystemArtifactRepository implements VerbArtifactRepository {
     private FilesystemManifestCreator manifestCreator
     private File repoBase
 
-    FilesystemArtifactRepository(RepositoryDefinition repoDef, ManifestService manifestService) {
+    FilesystemArtifactRepository(RepositoryDefinition repoDef) {
         this.repositoryDefinition = repoDef
-        this.manifestService = manifestService
-        repoBase = new File(repoDef.repositoryLocation.toURI())
+        repoBase = new File(repoDef.configProperties.repositoryLocation)
         if(!repoBase.exists()) {
             if(!repoBase.mkdirs()) throw new Exception("Repository base dir: ${repoBase.absolutePath} does not exist. Unable to create dir")
         }
@@ -52,6 +51,7 @@ class FilesystemArtifactRepository implements VerbArtifactRepository {
         }
         ensureExists(repoBase,ARTIFACT_BASE)
         ensureExists(repoBase,BINARY_BASE)
+        manifestService = new MemoryManifestService(repoDef.manifestLocation)
         manifestCreator = new FilesystemManifestCreator(repoBase.absolutePath+"/artifacts")
     }
 
@@ -96,6 +96,7 @@ class FilesystemArtifactRepository implements VerbArtifactRepository {
         ResponseBatch rbatch = new ResponseBatch()
         try {
             File saveFile = new File(repoBase,ARTIFACT_BASE+ArtifactUtils.artifactMetaFileName(artifact))
+            println "Saving artifact to: ${saveFile.absolutePath}"
             saveFile << inputStream
             recreateAndSaveManifest()
             manifestService.syncManifest()
@@ -110,6 +111,7 @@ class FilesystemArtifactRepository implements VerbArtifactRepository {
         ResponseBatch rbatch = new ResponseBatch()
         try {
             File saveFile = new File(repoBase,BINARY_BASE+ArtifactUtils.artifactBinaryFileName(artifact))
+            println "Saving artifact to: ${saveFile.absolutePath}"
             saveFile << inputStream
             rbatch.addMessage(ResponseMessage.success())
         } catch(Exception ex) {
@@ -122,9 +124,6 @@ class FilesystemArtifactRepository implements VerbArtifactRepository {
     ManifestService getManifestService() {
         return manifestService
     }
-
-    @Override
-    void configure(final Map configProperties) {}
 
     void recreateAndSaveManifest() {
         //TODO: this assumes the URL used in the repo defn is a writable location.

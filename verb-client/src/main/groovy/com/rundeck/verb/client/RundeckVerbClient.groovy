@@ -75,8 +75,13 @@ class RundeckVerbClient implements VerbClient {
     }
 
     @Override
-    Collection<ManifestSearchResult> listArtifacts(int offset = 0, int limit = -1) {
+    Collection<ManifestSearchResult> listArtifacts(Integer offset = 0, Integer limit = -1) {
         return repositoryManager.listArtifacts(offset,limit)
+    }
+
+    @Override
+    Collection<ManifestSearchResult> listArtifacts(String repoName, Integer offset = 0, Integer limit = -1) {
+        return repositoryManager.listArtifacts(repoName, offset,limit)
     }
 
     @Override

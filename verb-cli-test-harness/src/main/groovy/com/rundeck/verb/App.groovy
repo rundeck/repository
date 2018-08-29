@@ -29,7 +29,6 @@ class App {
 
     App() {
         client = new RundeckVerbClient(repositoryManager: new RundeckRepositoryManager())
-        println "Registered repositories: " + client.repositoryManager.listRepositories().join(",")
     }
 
     static void main(String[] args) {
@@ -41,7 +40,6 @@ class App {
 
     void printUsage() {
         println "create ArtifactName [${ArtifactType.values().collect { ArtifactUtils.niceArtifactTypeName(it)}.join("|")}] serviceType destinationPath"
-        println "upload repositoryName pathToArtifact"
     }
 
     void runCommand(final List<String> args) {
@@ -55,13 +53,6 @@ class App {
                     break
                 }
                 response = client.createArtifactTemplate(args[0], ArtifactUtils.artifactTypeFromNice(args[1]),args[2],baseDir)
-                break
-            case "upload":
-                if(args.size() != 2){
-                    printUsage()
-                    break
-                }
-                response = client.uploadArtifact(args[0],new File(args[1]).newInputStream())
                 break
             default:
                 printUsage()

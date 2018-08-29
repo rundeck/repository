@@ -39,7 +39,8 @@ interface VerbClient {
      */
     ResponseBatch installArtifact(String repositoryName, String artifactId, String version)
     Collection<ManifestSearchResult> searchManifests(ManifestSearch search)
-    Collection<ManifestSearchResult> listArtifacts(int offset, int limit)
+    Collection<ManifestSearchResult> listArtifacts(Integer offset, Integer limit)
+    Collection<ManifestSearchResult> listArtifacts(String repoName, Integer offset, Integer limit)
     VerbArtifact getArtifact(String repositoryName, String artifactId, String artifactVersion)
     InputStream getArtifactBinary(String repositoryName, String artifactId, String artifactVersion)
     void syncInstalledManifests()

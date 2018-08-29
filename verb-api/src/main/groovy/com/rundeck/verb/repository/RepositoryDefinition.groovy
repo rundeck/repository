@@ -18,9 +18,8 @@ package com.rundeck.verb.repository
 
 class RepositoryDefinition {
     String repositoryName
-    URL repositoryLocation
     URL manifestLocation
     RepositoryType type
     RepositoryOwner owner
-    Map configProperties
+    Map configProperties = [:]
 }

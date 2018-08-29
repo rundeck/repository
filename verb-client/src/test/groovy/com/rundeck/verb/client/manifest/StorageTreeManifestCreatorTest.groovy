@@ -19,6 +19,7 @@ import com.dtolabs.rundeck.core.storage.BaseStreamResource
 import com.dtolabs.rundeck.core.storage.ResourceMeta
 import com.dtolabs.rundeck.core.storage.StorageConverterPluginAdapter
 import com.dtolabs.rundeck.core.storage.StorageTimestamperConverter
+import com.rundeck.verb.client.TestUtils
 import com.rundeck.verb.client.artifact.StorageTreeArtifactInstaller
 import com.rundeck.verb.client.repository.StorageTreeVerbArtifactRepository
 import com.rundeck.verb.manifest.ArtifactManifest
@@ -42,13 +43,13 @@ class StorageTreeManifestCreatorTest extends Specification {
 //        File artifact = new File(artifactBase,"4819d98fea70-0.1.yaml")
 //        artifact.createNewFile()
 //        artifact << getClass().getClassLoader().getResourceAsStream("rundeck-verb-artifact.yaml")
-        def tree = FileTreeUtil.forRoot(repoBase, new ResourceFactory())
+        def tree = FileTreeUtil.forRoot(repoBase, TestUtils.resourceFactory())
         TreeBuilder tbuilder = TreeBuilder.builder(tree)
         def timestamptree = tbuilder.convert(new StorageConverterPluginAdapter(
                 "builtin:timestamp",
                 new StorageTimestamperConverter()
         )).build()
-        timestamptree.createResource("artifacts/4819d98fea70-0.1.yaml",DataUtil.withStream(getClass().getClassLoader().getResourceAsStream("rundeck-verb-artifact.yaml"),[:],new ResourceFactory()))
+        timestamptree.createResource("artifacts/4819d98fea70-0.1.yaml",DataUtil.withStream(getClass().getClassLoader().getResourceAsStream("rundeck-verb-artifact.yaml"),[:],TestUtils.resourceFactory()))
 
         when:
         StorageTreeManifestCreator manifestCreator = new StorageTreeManifestCreator(timestamptree)
@@ -59,10 +60,4 @@ class StorageTreeManifestCreatorTest extends Specification {
 
     }
 
-    private static class ResourceFactory implements ContentFactory<ResourceMeta> {
-        @Override
-        public ResourceMeta create(HasInputStream source, Map<String, String> meta) {
-            return new BaseStreamResource(meta,source)
-        }
-    }
 }

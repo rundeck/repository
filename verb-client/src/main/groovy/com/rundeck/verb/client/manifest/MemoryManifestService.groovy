@@ -43,7 +43,9 @@ class MemoryManifestService implements ManifestService {
     }
 
     @Override
-    Collection<ManifestEntry> listArtifacts(int offset = 0, int max = -1) {
+    Collection<ManifestEntry> listArtifacts(Integer offset = 0, Integer max = -1) {
+        if(!offset) offset = 0
+        if(!max) max = -1
         if(offset == 0 && max == -1) return artifacts.sort(artifactSorter).asImmutable()
 
         int lmax = offset+ max > artifacts.size()- 1 ? artifacts.size()- 1 : offset+ max

@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.rundeck.verb.repository
+package com.rundeck.verb.client.util
 
-import com.rundeck.verb.ResponseBatch
-import com.rundeck.verb.artifact.VerbArtifact
-import com.rundeck.verb.manifest.ManifestService
+import com.dtolabs.rundeck.core.storage.BaseStreamResource
+import com.dtolabs.rundeck.core.storage.ResourceMeta
+import org.rundeck.storage.api.ContentFactory
+import org.rundeck.storage.api.HasInputStream
 
 
-interface VerbArtifactRepository {
-    RepositoryDefinition getRepositoryDefinition()
-    VerbArtifact getArtifact(String artifactId, String version)
-    InputStream getArtifactBinary(String artifactId, String version)
-    ResponseBatch uploadArtifact(InputStream artifactInputStream)
-    ManifestService getManifestService()
+class ResourceFactory implements ContentFactory<ResourceMeta> {
+    @Override
+    ResourceMeta create(HasInputStream source, Map<String, String> meta) {
+        return new BaseStreamResource(meta, source)
+    }
 }

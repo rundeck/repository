@@ -15,25 +15,29 @@
  */
 package com.rundeck.verb.client.repository
 
-import com.rundeck.verb.client.manifest.MemoryManifestService
+import com.rundeck.verb.client.repository.tree.NamedTreeProvider
 import com.rundeck.verb.client.repository.tree.TreeProvider
 import com.rundeck.verb.repository.RepositoryDefinition
 import com.rundeck.verb.repository.RepositoryFactory
+import com.rundeck.verb.repository.RepositoryOwner
 import com.rundeck.verb.repository.RepositoryType
 import com.rundeck.verb.repository.VerbArtifactRepository
 
 class VerbRepositoryFactory implements RepositoryFactory {
 
-    TreeProvider treeProvider
+    TreeProvider treeProvider = new NamedTreeProvider()
 
     VerbArtifactRepository createRepository(RepositoryDefinition definition) {
         VerbArtifactRepository repository
         if(definition.type == RepositoryType.FILE) {
-            repository = new FilesystemArtifactRepository(definition,new MemoryManifestService(definition.manifestLocation))
+            repository = new FilesystemArtifactRepository(definition)
         } else if(definition.type == RepositoryType.STORAGE_TREE) {
-            repository = new StorageTreeVerbArtifactRepository(treeProvider.getTree(definition.repositoryName),definition,new MemoryManifestService(definition.manifestLocation))
+            repository = new StorageTreeVerbArtifactRepository(treeProvider.getTree(definition.configProperties.treeName),definition)
+        } else if(definition.type == RepositoryType.HTTP && definition.owner == RepositoryOwner.RUNDECK) {
+            repository = new RundeckVerbRepository(definition.configProperties.rundeckRepoEndpoint)
+        } else {
+            throw new Exception("Unknown repository type: ${definition.type}")
         }
-        repository.configure(definition.configProperties)
         return repository
     }
 }

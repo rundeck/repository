@@ -22,8 +22,6 @@ import com.rundeck.verb.ResponseBatch
 import com.rundeck.verb.ResponseCodes
 import com.rundeck.verb.ResponseMessage
 import com.rundeck.verb.artifact.VerbArtifact
-import com.rundeck.verb.client.RundeckVerbClient
-import com.rundeck.verb.client.RundeckVerbConfigurationProperties
 import com.rundeck.verb.manifest.search.ManifestSearch
 import com.rundeck.verb.manifest.search.ManifestSearchResult
 import com.rundeck.verb.repository.RepositoryDefinition
@@ -44,10 +42,6 @@ class RundeckRepositoryManager implements RepositoryManager {
 
     RundeckRepositoryManager() {
         this(new VerbRepositoryFactory())
-        String defaultRepoListUrl = RundeckVerbClient.clientProperties[
-                RundeckVerbConfigurationProperties.CLIENT_DEFAULT_REPO_DEFN_LIST]
-        println "default repo list " + defaultRepoListUrl
-        if(defaultRepoListUrl) setRepositoryDefinitionListDatasourceUrl(defaultRepoListUrl)
     }
     RundeckRepositoryManager(RepositoryFactory repositoryFactory) {
         this.repositoryFactory = repositoryFactory
@@ -86,7 +80,7 @@ class RundeckRepositoryManager implements RepositoryManager {
 
     private void initializeRepoFromDefinition(final RepositoryDefinition repositoryDefinition) {
         VerbArtifactRepository repo = repositoryFactory.createRepository(repositoryDefinition)
-        repo.manifestService.syncManifest()
+        println repo.manifestService.syncManifest()
         repositories[repositoryDefinition.repositoryName] = repo
     }
 
@@ -127,13 +121,22 @@ class RundeckRepositoryManager implements RepositoryManager {
     }
 
     @Override
-    Collection<ManifestSearchResult> listArtifacts(final int offset, final int max) {
+    Collection<ManifestSearchResult> listArtifacts(final Integer offset, final Integer max) {
         def results = []
         repositories.values().each {
             ManifestSearchResult result = new ManifestSearchResult(repositoryName: it.repositoryDefinition.repositoryName)
             result.results = it.manifestService.listArtifacts(offset,max)
             results.add(result)
         }
+        return results
+    }
+
+    @Override
+    Collection<ManifestSearchResult> listArtifacts(String repoName, final Integer offset, final Integer max) {
+        def results = []
+        ManifestSearchResult result = new ManifestSearchResult(repositoryName: repoName)
+        result.results = repositories[repoName].manifestService.listArtifacts(offset,max)
+        results.add(result)
         return results
     }
 

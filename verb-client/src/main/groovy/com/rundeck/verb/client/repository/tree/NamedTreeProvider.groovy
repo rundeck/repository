@@ -15,14 +15,14 @@
  */
 package com.rundeck.verb.client.repository.tree
 
-import org.rundeck.storage.api.Tree
+import com.dtolabs.rundeck.core.storage.StorageTree
 
 
-class MemoryMapTreeProvider implements TreeProvider {
-    Map<String, Tree> trees = [:]
+class NamedTreeProvider implements TreeProvider {
+    Map<String, StorageTree> treeRegistry = [:]
 
     @Override
-    Tree getTree(final String repositoryName) {
-        return trees[repositoryName]
+    StorageTree getTree(final String treeName) {
+        return treeRegistry[treeName]
     }
 }

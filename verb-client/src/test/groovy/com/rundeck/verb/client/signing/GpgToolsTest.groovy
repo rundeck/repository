@@ -36,6 +36,9 @@ class GpgToolsTest extends Specification {
         outfile.exists()
         outfile.size() > 0
 
+        cleanup:
+        outfile.delete()
+
     }
 
     def "ValidateSignature"() {

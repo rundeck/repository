@@ -40,12 +40,11 @@ class FilesystemArtifactRepositoryTest extends Specification {
         repoManifest.createNewFile()
         repoManifest << "{}"
         RepositoryDefinition repoDef = new RepositoryDefinition()
-        repoDef.repositoryLocation = repoBase.toURL()
+        repoDef.configProperties.repositoryLocation = repoBase.absolutePath
         repoDef.manifestLocation = repoManifest.toURL()
         repoDef.type = RepositoryType.FILE
         repoDef.owner = RepositoryOwner.PRIVATE
-        MemoryManifestService fsManifestService = new MemoryManifestService(repoDef.manifestLocation)
-        repo = new FilesystemArtifactRepository(repoDef, fsManifestService)
+        repo = new FilesystemArtifactRepository(repoDef)
         repo.manifestService.syncManifest()
     }
 
