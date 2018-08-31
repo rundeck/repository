@@ -71,4 +71,19 @@ class RundeckVerbArtifact implements VerbArtifact {
         entry.binaryLink = binaryLink
         return entry
     }
+
+    @Override
+    String getInstallationFileName() {
+        return ArtifactUtils.sanitizedPluginName(name).toLowerCase()+ "."+ artifactType.extension
+    }
+
+    @Override
+    String getArtifactMetaFileName() {
+        return ArtifactUtils.artifactMetaFileName(id,version)
+    }
+
+    @Override
+    String getArtifactBinaryFileName() {
+        return ArtifactUtils.artifactBinaryFileName(id,version,artifactType.extension)
+    }
 }

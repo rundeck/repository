@@ -22,6 +22,7 @@ import com.rundeck.verb.artifact.VerbArtifact
 import com.rundeck.verb.manifest.ArtifactManifest
 import com.rundeck.verb.manifest.ManifestService
 import com.rundeck.verb.manifest.ManifestEntry
+import com.rundeck.verb.manifest.ManifestSource
 import com.rundeck.verb.manifest.search.ManifestSearch
 import com.rundeck.verb.manifest.search.ManifestSearchResult
 import com.rundeck.verb.manifest.search.SearchTerm
@@ -29,17 +30,12 @@ import com.rundeck.verb.manifest.search.SearchTerm
 
 class MemoryManifestService implements ManifestService {
 
-    static ObjectMapper jmap = new ObjectMapper()
-
     private final URL manifestDatasource
+    private final ManifestSource manifestSource
     private List<ManifestEntry> artifacts = []
 
-    MemoryManifestService(String manifestDatasourceUrl) {
-        this(new URL(manifestDatasourceUrl))
-    }
-
-    MemoryManifestService(URL manifestDatasource) {
-        this.manifestDatasource = manifestDatasource
+    MemoryManifestService(ManifestSource mSource) {
+        this.manifestSource = mSource
     }
 
     @Override
@@ -74,7 +70,7 @@ class MemoryManifestService implements ManifestService {
     @Override
     ResponseMessage syncManifest() {
         try {
-            ArtifactManifest newManifest = jmap.readValue(manifestDatasource, ArtifactManifest)
+            ArtifactManifest newManifest = manifestSource.getManifest()
             artifacts.clear()
             newManifest.entries.each { artifacts.add(it) }
             return ResponseMessage.success()

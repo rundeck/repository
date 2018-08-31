@@ -21,11 +21,13 @@ import com.rundeck.verb.ResponseMessage
 import com.rundeck.verb.artifact.VerbArtifact
 import com.rundeck.verb.client.artifact.RundeckVerbArtifact
 import com.rundeck.verb.client.manifest.FilesystemManifestCreator
+import com.rundeck.verb.client.manifest.FilesystemManifestSource
 import com.rundeck.verb.client.manifest.MemoryManifestService
 import com.rundeck.verb.client.util.ArtifactFileset
 import com.rundeck.verb.client.util.ArtifactUtils
 import com.rundeck.verb.manifest.ManifestEntry
 import com.rundeck.verb.manifest.ManifestService
+import com.rundeck.verb.manifest.ManifestSource
 import com.rundeck.verb.repository.RepositoryDefinition
 import com.rundeck.verb.repository.VerbArtifactRepository
 
@@ -37,21 +39,21 @@ class FilesystemArtifactRepository implements VerbArtifactRepository {
     private ManifestService manifestService
     private FilesystemManifestCreator manifestCreator
     private File repoBase
+    private ManifestSource manifestSource
 
     FilesystemArtifactRepository(RepositoryDefinition repoDef) {
+        if(!repoDef.configProperties.repositoryLocation) throw new Exception("Path to repository location must be provided by setting configProperties.repositoryLocation in repository definition.")
+        if(!repoDef.configProperties.manifestLocation) throw new Exception("Path to manifest must be provided by setting configProperties.manifestLocation in repository definition.")
         this.repositoryDefinition = repoDef
         repoBase = new File(repoDef.configProperties.repositoryLocation)
         if(!repoBase.exists()) {
             if(!repoBase.mkdirs()) throw new Exception("Repository base dir: ${repoBase.absolutePath} does not exist. Unable to create dir")
         }
-        File manifestFile = new File(repoDef.manifestLocation.toURI())
-        if(!manifestFile.exists()) {
-            if(!manifestFile.createNewFile()) throw new Exception("Unable to create repo manifest file: ${manifestFile.absolutePath}")
-            manifestFile << "{}"
-        }
+
         ensureExists(repoBase,ARTIFACT_BASE)
         ensureExists(repoBase,BINARY_BASE)
-        manifestService = new MemoryManifestService(repoDef.manifestLocation)
+        manifestSource = new FilesystemManifestSource(repoDef.configProperties.manifestLocation)
+        manifestService = new MemoryManifestService(manifestSource)
         manifestCreator = new FilesystemManifestCreator(repoBase.absolutePath+"/artifacts")
     }
 
@@ -95,7 +97,7 @@ class FilesystemArtifactRepository implements VerbArtifactRepository {
     ResponseBatch uploadArtifactMeta(final RundeckVerbArtifact artifact, final InputStream inputStream) {
         ResponseBatch rbatch = new ResponseBatch()
         try {
-            File saveFile = new File(repoBase,ARTIFACT_BASE+ArtifactUtils.artifactMetaFileName(artifact))
+            File saveFile = new File(repoBase,ARTIFACT_BASE+artifact.artifactMetaFileName)
             println "Saving artifact to: ${saveFile.absolutePath}"
             saveFile << inputStream
             recreateAndSaveManifest()
@@ -110,7 +112,7 @@ class FilesystemArtifactRepository implements VerbArtifactRepository {
     ResponseBatch uploadArtifactBinary(final RundeckVerbArtifact artifact, final InputStream inputStream) {
         ResponseBatch rbatch = new ResponseBatch()
         try {
-            File saveFile = new File(repoBase,BINARY_BASE+ArtifactUtils.artifactBinaryFileName(artifact))
+            File saveFile = new File(repoBase,BINARY_BASE+artifact.artifactBinaryFileName)
             println "Saving artifact to: ${saveFile.absolutePath}"
             saveFile << inputStream
             rbatch.addMessage(ResponseMessage.success())
@@ -126,7 +128,6 @@ class FilesystemArtifactRepository implements VerbArtifactRepository {
     }
 
     void recreateAndSaveManifest() {
-        //TODO: this assumes the URL used in the repo defn is a writable location.
-        ArtifactUtils.writeArtifactManifestToFile(manifestCreator.createManifest(),new File(repositoryDefinition.manifestLocation.toURI()).newOutputStream())
+        manifestSource.saveManifest(manifestCreator.createManifest())
     }
 }

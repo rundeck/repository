@@ -27,12 +27,17 @@ class ScriptPluginTemplateGenerator implements ArtifactTypeTemplateGenerator {
     private static final String TEMPLATE_BASE = "templates/script-plugin/"
     private static final String SCRIPT_STRUCTURE = TEMPLATE_BASE + "script-plugin.structure"
 
+    private static final List<String> ALLOWED_SERVICE_TYPES = ["NodeExecutor","FileCopier","ResourceModelSource","WorkflowNodeStep","RemoteScriptNodeStep"]
+
     GStringTemplateEngine engine = new GStringTemplateEngine()
     private Map templateProperties = new HashMap(RundeckVerbClient.clientProperties)
 
     @Override
     ResponseBatch createTemplate(final String artifactName, final String providedService, final String destinationDir) {
         ResponseBatch batch = new ResponseBatch()
+        if(!ALLOWED_SERVICE_TYPES.contains(providedService)) {
+            batch.addMessage(new ResponseMessage(code: ResponseCodes.TEMPLATE_GENERATION_FAILED,message:"Script plugins do not support serivice: ${providedService}. Allowed types are: ${ALLOWED_SERVICE_TYPES.join(", ")}"))
+        }
         try {
             templateProperties["newPluginId"] = ArtifactUtils.archiveNameToId(artifactName)
             templateProperties["pluginName"] = artifactName

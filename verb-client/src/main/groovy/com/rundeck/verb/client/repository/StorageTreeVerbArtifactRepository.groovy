@@ -23,6 +23,7 @@ import com.rundeck.verb.artifact.VerbArtifact
 import com.rundeck.verb.client.artifact.RundeckVerbArtifact
 import com.rundeck.verb.client.manifest.MemoryManifestService
 import com.rundeck.verb.client.manifest.StorageTreeManifestCreator
+import com.rundeck.verb.client.manifest.StorageTreeManifestSource
 import com.rundeck.verb.client.util.ArtifactFileset
 import com.rundeck.verb.client.util.ArtifactUtils
 import com.rundeck.verb.client.util.ResourceFactory
@@ -30,6 +31,7 @@ import com.rundeck.verb.events.RepositoryEventEmitter
 import com.rundeck.verb.events.RepositoryUpdateEvent
 import com.rundeck.verb.manifest.ManifestEntry
 import com.rundeck.verb.manifest.ManifestService
+import com.rundeck.verb.manifest.ManifestSource
 import com.rundeck.verb.repository.RepositoryDefinition
 import com.rundeck.verb.repository.VerbArtifactRepository
 import groovy.transform.PackageScope
@@ -44,6 +46,7 @@ class StorageTreeVerbArtifactRepository implements VerbArtifactRepository {
     private final RepositoryEventEmitter eventEmitter
     private StorageTreeManifestCreator manifestCreator
     static final ResourceFactory resourceFactory = new ResourceFactory()
+    private ManifestSource manifestSource
 
     StorageTreeVerbArtifactRepository(StorageTree storageTree, RepositoryDefinition repositoryDefinition, RepositoryEventEmitter eventEmitter) {
         this(storageTree,repositoryDefinition)
@@ -53,9 +56,11 @@ class StorageTreeVerbArtifactRepository implements VerbArtifactRepository {
 
     StorageTreeVerbArtifactRepository(StorageTree storageTree, RepositoryDefinition repositoryDefinition) {
         if(!storageTree) throw new Exception("Unable to initialize storage tree repository. No storage tree provided.")
+        if(!repositoryDefinition.configProperties.manifestPath) throw new Exception("Path to manifest in storage tree must be provided by setting configProperties.manifestPath in repository definition.")
         this.storageTree = storageTree
         this.repositoryDefinition = repositoryDefinition
-        this.manifestService = new MemoryManifestService(repositoryDefinition.manifestLocation)
+        this.manifestSource = new StorageTreeManifestSource(storageTree,this.repositoryDefinition.configProperties.manifestPath)
+        this.manifestService = new MemoryManifestService(manifestSource)
         manifestCreator = new StorageTreeManifestCreator(storageTree)
     }
 
@@ -95,7 +100,7 @@ class StorageTreeVerbArtifactRepository implements VerbArtifactRepository {
     @PackageScope
     ResponseBatch uploadArtifactMeta(final RundeckVerbArtifact artifact, final InputStream metaInputStream) {
         ResponseBatch response = new ResponseBatch()
-        String artifactPath = ARTIFACT_BASE + ArtifactUtils.artifactMetaFileName(artifact)
+        String artifactPath = ARTIFACT_BASE + artifact.getArtifactMetaFileName()
         Map meta = [:]
         try {
             def resource = DataUtil.withStream(metaInputStream, meta, resourceFactory)
@@ -120,7 +125,7 @@ class StorageTreeVerbArtifactRepository implements VerbArtifactRepository {
     @PackageScope
     ResponseBatch uploadArtifactBinary(final RundeckVerbArtifact artifact, final InputStream artifactBinaryInputStream) {
         ResponseBatch response = new ResponseBatch()
-        String binaryPath = BINARY_BASE+ArtifactUtils.artifactBinaryFileName(artifact)
+        String binaryPath = BINARY_BASE+artifact.getArtifactBinaryFileName()
         Map meta = [:]
         try {
             def resource = DataUtil.withStream(artifactBinaryInputStream, meta, resourceFactory)
@@ -140,8 +145,7 @@ class StorageTreeVerbArtifactRepository implements VerbArtifactRepository {
     }
 
     void recreateAndSaveManifest() {
-        //TODO: this assumes the URL used in the repo defn is a writable location.
-        ArtifactUtils.writeArtifactManifestToFile(manifestCreator.createManifest(),new File(repositoryDefinition.manifestLocation.toURI()).newOutputStream())
+        manifestSource.saveManifest(manifestCreator.createManifest())
     }
 
 }

@@ -1,8 +1,8 @@
 repositories:
     -
         repositoryName: private
-        manifestLocation: file:/tmp/verb-repo/manifest.json
         type: FILE
         owner: PRIVATE
         configProperties:
-                repositoryLocation: file:/tmp/verb-repo
+                repositoryLocation: /tmp/verb-repo
+                manifestLocation: /tmp/verb-repo/manifest.json

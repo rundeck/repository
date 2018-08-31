@@ -97,7 +97,7 @@ class GpgSignedStorageTreeVerbArtifactRepository extends StorageTreeVerbArtifact
         if(artifactFileset.hasBinary()) {
             File binarySig = File.createTempFile("binary","sig")
             GpgTools.signDetached(false,gpgPrivateKey.newInputStream(),artifactFileset.artifactBinary.newInputStream(),binarySig.newOutputStream(),passphraseProvider)
-            String sigPath = BINARY_BASE+ArtifactUtils.artifactBinaryFileName(artifactFileset.artifact)+".sig"
+            String sigPath = BINARY_BASE+artifactFileset.artifact.getArtifactBinaryFileName()+".sig"
             def sigResource = DataUtil.withStream(binarySig.newInputStream(), [:], resourceFactory)
             storageTree.createResource(sigPath,sigResource)
             responseBatch.messages.addAll(uploadArtifactBinary(artifactFileset.artifact, artifactFileset.artifactBinary.newInputStream()).messages)
@@ -115,7 +115,7 @@ class GpgSignedStorageTreeVerbArtifactRepository extends StorageTreeVerbArtifact
             bout << metaInputStream
             File metaSig = File.createTempFile("meta","sig")
             GpgTools.signDetached(false,gpgPrivateKey.newInputStream(),new ByteArrayInputStream(bout.toByteArray()),metaSig.newOutputStream(),passphraseProvider)
-            String sigPath = ARTIFACT_BASE+ArtifactUtils.artifactMetaFileName(artifact)+".sig"
+            String sigPath = ARTIFACT_BASE+artifact.getArtifactMetaFileName()+".sig"
             def sigResource = DataUtil.withStream(metaSig.newInputStream(), [:], resourceFactory)
             storageTree.createResource(sigPath,sigResource)
             artifactStream = new ByteArrayInputStream(bout.toByteArray())

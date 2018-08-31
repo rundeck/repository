@@ -26,6 +26,7 @@ jar {
     manifest {
         attributes 'Rundeck-Plugin-Classnames': pluginClassNames
         attributes 'Rundeck-Plugin-File-Version': version
+        attributes 'Rundeck-Plugin-Name': ${pluginName}
         attributes 'Rundeck-Plugin-Version': rundeckPluginVersion, 'Rundeck-Plugin-Archive': 'true'
     }
     from("rundeck-verb-artifact.yaml") {

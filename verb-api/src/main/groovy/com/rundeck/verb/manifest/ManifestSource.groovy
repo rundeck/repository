@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.rundeck.verb.repository
+package com.rundeck.verb.manifest
 
 
-class RepositoryDefinition {
-    String repositoryName
-    RepositoryType type
-    RepositoryOwner owner
-    Map configProperties = [:]
+interface ManifestSource {
+    ArtifactManifest getManifest()
+    void saveManifest(ArtifactManifest manifest)
 }

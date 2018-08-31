@@ -41,7 +41,7 @@ class FilesystemArtifactRepositoryTest extends Specification {
         repoManifest << "{}"
         RepositoryDefinition repoDef = new RepositoryDefinition()
         repoDef.configProperties.repositoryLocation = repoBase.absolutePath
-        repoDef.manifestLocation = repoManifest.toURL()
+        repoDef.configProperties.manifestLocation = repoManifest.absolutePath
         repoDef.type = RepositoryType.FILE
         repoDef.owner = RepositoryOwner.PRIVATE
         repo = new FilesystemArtifactRepository(repoDef)

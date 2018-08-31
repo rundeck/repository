@@ -16,7 +16,6 @@
 package com.rundeck.verb.client.artifact
 
 import com.dtolabs.rundeck.core.storage.StorageTree
-import com.dtolabs.rundeck.core.storage.StorageUtil
 import com.rundeck.verb.ResponseBatch
 import com.rundeck.verb.ResponseCodes
 import com.rundeck.verb.ResponseMessage
@@ -39,7 +38,7 @@ class StorageTreeArtifactInstaller implements ArtifactInstaller {
     ResponseBatch installArtifact(final VerbArtifact artifact, InputStream binaryInputStream) {
         ResponseBatch batch = new ResponseBatch()
         try {
-            String artifactKey = "plugins/"+artifact.id+"."+artifact.artifactType.extension
+            String artifactKey = "plugins/"+ artifact.getInstallationFileName()
             def resource = DataUtil.withStream(binaryInputStream, [:], RESOURCE_FACTORY)
             if(storageTree.hasResource(artifactKey)) {
                 storageTree.updateResource(artifactKey, resource)

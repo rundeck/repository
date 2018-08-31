@@ -16,6 +16,7 @@
 package com.rundeck.verb.client
 
 import com.dtolabs.rundeck.core.storage.StorageTreeImpl
+import com.rundeck.verb.artifact.ArtifactType
 import com.rundeck.verb.client.artifact.RundeckVerbArtifact
 import com.rundeck.verb.client.artifact.StorageTreeArtifactInstaller
 import com.rundeck.verb.client.repository.VerbRepositoryFactory
@@ -39,17 +40,28 @@ class RundeckVerbClientTest extends Specification {
     }
 
     def "Upload Artifact To Repo"() {
+        setup:
+        File tempDir = File.createTempDir()
+        println tempDir.absolutePath
+        RundeckVerbClient client = new RundeckVerbClient()
+        client.createArtifactTemplate("ScriptIt", ArtifactType.SCRIPT_PLUGIN,"NodeStep",tempDir.absolutePath)
+        client.createArtifactTemplate("DownloadMe", ArtifactType.META,"NodeStep",tempDir.absolutePath)
+        TestUtils.zipDir(tempDir.absolutePath+"/scriptit")
 
         when:
-        RundeckVerbClient client = new RundeckVerbClient()
+
         client.repositoryManager = new RundeckRepositoryManager(new VerbRepositoryFactory())
         client.repositoryManager.setRepositoryDefinitionListDatasourceUrl(getClass().getClassLoader().getResource("repository-definition-list.yaml").toString())
 
         def response = client.uploadArtifact("private",getClass().getClassLoader().getResourceAsStream("binary-artifacts/SuperNotifier-0.1.0-SNAPSHOT.jar"))
-        println response.messages[0].message
-        println response.messages[0].code
+        def response2 = client.uploadArtifact("private",new File(tempDir.absolutePath+"/scriptit.zip").newInputStream())
+        def response3 = client.uploadArtifact("private",new File(tempDir.absolutePath+"/downloadme/rundeck-verb-artifact.yaml").newInputStream())
+        println response3.messages[0].message
+        println response3.messages[0].code
         then:
         response.batchSucceeded()
+        response2.batchSucceeded()
+        response3.batchSucceeded()
 
     }
 
@@ -93,7 +105,7 @@ class RundeckVerbClientTest extends Specification {
 
         then:
         manifestSearchResults.size() == 1
-        manifestSearchResults[0].results.size() == 1
+        manifestSearchResults[0].results.size() == 3
 
     }
 
@@ -110,7 +122,7 @@ class RundeckVerbClientTest extends Specification {
 
         then:
         manifestSearchResults.size() == 1
-        manifestSearchResults[0].results.size() == 1
+        manifestSearchResults[0].results.size() == 3
 
     }
 }

@@ -55,4 +55,8 @@ interface VerbArtifact {
     void setWebLink(final String webLink)
     String getLogoLink()
     void setLogoLink(final String logoLink)
+
+    String getInstallationFileName()
+    String getArtifactMetaFileName()
+    String getArtifactBinaryFileName()
 }

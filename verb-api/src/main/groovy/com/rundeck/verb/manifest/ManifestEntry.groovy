@@ -32,5 +32,5 @@ class ManifestEntry {
     Collection<String> oldVersions = []
     Integer rating //1-5 stars
     Integer installs
-
+    boolean installed
 }

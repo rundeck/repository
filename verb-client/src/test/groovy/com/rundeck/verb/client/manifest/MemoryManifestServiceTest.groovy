@@ -32,7 +32,7 @@ class MemoryManifestServiceTest extends Specification {
     MemoryManifestService memoryManifest
 
     def setup() {
-        memoryManifest = new MemoryManifestService(getClass().getClassLoader().getResource("memory-manifest-service-test.manifest"))
+        memoryManifest = new MemoryManifestService(new FilesystemManifestSource(new File(getClass().getClassLoader().getResource("memory-manifest-service-test.manifest").toURI()).absolutePath))
         memoryManifest.syncManifest()
     }
 
