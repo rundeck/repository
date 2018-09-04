@@ -46,7 +46,6 @@ class FilesystemManifestCreator extends AbstractManifestCreator {
             if(guessed == ArtifactType.META) {
                 metaInStream = file.newInputStream()
             } else {
-                println file.absolutePath
                 metaInStream = ArtifactUtils.extractArtifactMetaFromZip(new ZipFile(file))
             }
             RundeckVerbArtifact artifact = ArtifactUtils.createArtifactFromStream(metaInStream)

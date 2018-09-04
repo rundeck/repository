@@ -25,6 +25,7 @@ import com.rundeck.verb.client.util.ArtifactUtils
 import com.rundeck.verb.client.util.ResourceFactory
 import org.rundeck.storage.data.DataUtil
 import org.rundeck.storage.data.file.FileTreeUtil
+import spock.lang.Shared
 import spock.lang.Specification
 
 import java.util.zip.ZipFile
@@ -32,32 +33,36 @@ import java.util.zip.ZipFile
 
 class RundeckVerbClientTest extends Specification {
 
+    @Shared
+    File repoRoot
+    @Shared
+    File buildDir
+    @Shared
+    String builtNotifierPath = "Notifier/build/libs/Notifier-0.1.0-SNAPSHOT.jar" //assumes buildDir directory
+
     def setupSpec() {
-        File repoRoot = new File("/tmp/verb-repo")
+        buildDir = File.createTempDir()
+        repoRoot = new File("/tmp/verb-repo")
         if(repoRoot.exists()) repoRoot.deleteDir()
         repoRoot.mkdirs()
         new File("/tmp/verb-repo/manifest.json") << "{}" //Init empty manifest
+        RundeckVerbClient client = new RundeckVerbClient()
+        client.createArtifactTemplate("Notifier", ArtifactType.JAVA_PLUGIN,"Notification",buildDir.absolutePath)
+        TestUtils.buildGradle(new File(buildDir,"Notifier"))
+        client.createArtifactTemplate("ScriptIt", ArtifactType.SCRIPT_PLUGIN,"NodeStep",buildDir.absolutePath)
+        TestUtils.zipDir(buildDir.absolutePath+"/scriptit")
+        client.createArtifactTemplate("DownloadMe", ArtifactType.META,"NodeStep",buildDir.absolutePath)
     }
 
     def "Upload Artifact To Repo"() {
-        setup:
-        File tempDir = File.createTempDir()
-        println tempDir.absolutePath
-        RundeckVerbClient client = new RundeckVerbClient()
-        client.createArtifactTemplate("ScriptIt", ArtifactType.SCRIPT_PLUGIN,"NodeStep",tempDir.absolutePath)
-        client.createArtifactTemplate("DownloadMe", ArtifactType.META,"NodeStep",tempDir.absolutePath)
-        TestUtils.zipDir(tempDir.absolutePath+"/scriptit")
-
         when:
-
+        RundeckVerbClient client = new RundeckVerbClient()
         client.repositoryManager = new RundeckRepositoryManager(new VerbRepositoryFactory())
         client.repositoryManager.setRepositoryDefinitionListDatasourceUrl(getClass().getClassLoader().getResource("repository-definition-list.yaml").toString())
 
-        def response = client.uploadArtifact("private",getClass().getClassLoader().getResourceAsStream("binary-artifacts/SuperNotifier-0.1.0-SNAPSHOT.jar"))
-        def response2 = client.uploadArtifact("private",new File(tempDir.absolutePath+"/scriptit.zip").newInputStream())
-        def response3 = client.uploadArtifact("private",new File(tempDir.absolutePath+"/downloadme/rundeck-verb-artifact.yaml").newInputStream())
-        println response3.messages[0].message
-        println response3.messages[0].code
+        def response = client.uploadArtifact("private",new File(buildDir,builtNotifierPath).newInputStream())
+        def response2 = client.uploadArtifact("private",new File(buildDir.absolutePath+"/scriptit.zip").newInputStream())
+        def response3 = client.uploadArtifact("private",new File(buildDir.absolutePath+"/downloadme/rundeck-verb-artifact.yaml").newInputStream())
         then:
         response.batchSucceeded()
         response2.batchSucceeded()
@@ -75,12 +80,12 @@ class RundeckVerbClientTest extends Specification {
         when:
         RundeckVerbClient client = new RundeckVerbClient()
         client.artifactInstaller = new StorageTreeArtifactInstaller(new StorageTreeImpl(FileTreeUtil.forRoot(pluginRoot, new ResourceFactory())))
-        VerbRepositoryFactory repositoryFactory = new VerbRepositoryFactory()
         client.repositoryManager = new RundeckRepositoryManager(new VerbRepositoryFactory())
         client.repositoryManager.setRepositoryDefinitionListDatasourceUrl(getClass().getClassLoader().getResource("repository-definition-list.yaml").toString())
 
-        ZipFile bin = new ZipFile(new File(getClass().getClassLoader().getResource("binary-artifacts/SuperNotifier-0.1.0-SNAPSHOT.jar").toURI()))
+        ZipFile bin = new ZipFile(new File(buildDir,builtNotifierPath))
         RundeckVerbArtifact artifact = ArtifactUtils.createArtifactFromStream(ArtifactUtils.extractArtifactMetaFromZip(bin))
+        println "attempting to install: ${artifact.id}"
         def response = client.installArtifact("private",artifact.id)
 
         response.messages.each {
@@ -98,7 +103,6 @@ class RundeckVerbClientTest extends Specification {
         RundeckVerbClient client = new RundeckVerbClient()
         client.repositoryManager = new RundeckRepositoryManager(new VerbRepositoryFactory())
         client.repositoryManager.setRepositoryDefinitionListDatasourceUrl(getClass().getClassLoader().getResource("repository-definition-list.yaml").toString())
-        client.syncInstalledManifests()
 
         when:
         def manifestSearchResults = client.listArtifacts()
@@ -115,7 +119,6 @@ class RundeckVerbClientTest extends Specification {
         RundeckVerbClient client = new RundeckVerbClient()
         client.repositoryManager = new RundeckRepositoryManager(new VerbRepositoryFactory())
         client.repositoryManager.setRepositoryDefinitionListDatasourceUrl(getClass().getClassLoader().getResource("repository-definition-list.yaml").toString())
-        client.syncInstalledManifests()
 
         when:
         def manifestSearchResults = client.listArtifacts("private")

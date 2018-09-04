@@ -16,18 +16,22 @@
 package com.rundeck.verb.client.util
 
 import com.rundeck.verb.Constants
+import com.rundeck.verb.artifact.ArtifactType
+import com.rundeck.verb.client.RundeckVerbClient
+import com.rundeck.verb.client.TestUtils
 import spock.lang.Specification
 
 
 class ArtifactUtilsTest extends Specification {
     def "Is Binary Plugin"() {
         setup:
-        File binaryTmp = File.createTempFile("verb","binary")
-        binaryTmp.deleteOnExit()
-        binaryTmp << getClass().getClassLoader().getResourceAsStream("binary-artifacts/SuperNotifier-0.1.0-SNAPSHOT.jar")
+        RundeckVerbClient client = new RundeckVerbClient()
+        File buildDir = File.createTempDir()
+        client.createArtifactTemplate("ScriptIt", ArtifactType.SCRIPT_PLUGIN, "NodeStep", buildDir.absolutePath)
+        TestUtils.zipDir(buildDir.absolutePath+ "/scriptit")
 
         expect:
-        ArtifactUtils.isBinaryPlugin(binaryTmp)
+        ArtifactUtils.isBinaryPlugin(new File(buildDir,"scriptit.zip"))
     }
 
     def "Is Binary Plugin false for meta"() {

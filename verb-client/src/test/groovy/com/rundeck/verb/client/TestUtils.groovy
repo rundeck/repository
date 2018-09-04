@@ -15,41 +15,11 @@
  */
 package com.rundeck.verb.client
 
-import com.dtolabs.rundeck.core.storage.BaseStreamResource
-import com.dtolabs.rundeck.core.storage.ResourceMeta
-import com.rundeck.verb.client.generator.JavaPluginTemplateGenerator
-import org.rundeck.storage.api.ContentFactory
-import org.rundeck.storage.api.HasInputStream
-
-import java.util.zip.ZipFile
-
-
 class TestUtils {
 
     static void buildGradle(File baseDir) {
         Process p = new ProcessBuilder("gradle","build").directory(baseDir).start()
         p.waitFor()
-    }
-
-    static void copyToTestBinaryArtifactsResourceLocation(String fileSource) {
-        File source = new File(fileSource)
-        File destDir = new File(System.getProperty("user.dir")+"/src/test/resources/binary-artifacts")
-        File destFile = new File(destDir,source.name)
-
-        source.withInputStream {
-            destFile << it
-        }
-    }
-
-    static refreshTestBinaryArtifact() {
-        File destDir = File.createTempDir()
-        String destDirPath = destDir.absolutePath
-        if(!destDir.exists()) destDir.mkdirs()
-        JavaPluginTemplateGenerator generator = new JavaPluginTemplateGenerator()
-        generator.createTemplate("Super Notifier","Notification",destDir.absolutePath)
-        buildGradle(new File(destDir,"SuperNotifier"))
-        copyToTestBinaryArtifactsResourceLocation("${destDirPath}/SuperNotifier/build/libs/SuperNotifier-0.1.0-SNAPSHOT.jar")
-        println "generated at: ${destDirPath}"
     }
 
     static void zipDir(final String dirToZip) {
@@ -72,14 +42,4 @@ class TestUtils {
         }
     }
 
-    static ResourceFactory resourceFactory() {
-        return new ResourceFactory()
-    }
-
-    private static class ResourceFactory implements ContentFactory<ResourceMeta> {
-        @Override
-        public ResourceMeta create(HasInputStream source, Map<String, String> meta) {
-            return new BaseStreamResource(meta, source)
-        }
-    }
 }

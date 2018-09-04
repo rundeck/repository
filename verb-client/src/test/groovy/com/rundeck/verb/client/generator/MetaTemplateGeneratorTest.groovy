@@ -22,7 +22,6 @@ class MetaTemplateGeneratorTest extends Specification {
     def "Create Meta Template"() {
         setup:
         File destDir = File.createTempDir()
-        println destDir.absolutePath
 
         when:
         MetaTemplateGenerator gen = new MetaTemplateGenerator()

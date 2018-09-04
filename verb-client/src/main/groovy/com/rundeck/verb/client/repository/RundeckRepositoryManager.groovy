@@ -36,7 +36,7 @@ class RundeckRepositoryManager implements RepositoryManager {
     private ObjectMapper mapper = new ObjectMapper()
     private YAMLFactory yamlFactory = new YAMLFactory()
     private Map<String, VerbArtifactRepository> repositories = [:]
-    private RepositoryDefinitionList repositoryDefinitions = new RepositoryDefinitionList()
+    private RepositoryDefinitionList repositoryDefinitions
     private URL repositoryDefinitionDatasource
     private RepositoryFactory repositoryFactory
 
@@ -52,10 +52,12 @@ class RundeckRepositoryManager implements RepositoryManager {
         this.repositoryDefinitionDatasource = new URL(urlToRepositoryDefinitionListDatasource)
         repositories.clear()
         loadRepositories()
+        syncRepositories()
     }
 
     void loadRepositories() {
         repositoryDefinitions = mapper.readValue(yamlFactory.createParser(repositoryDefinitionDatasource),RepositoryDefinitionList)
+        if(!repositoryDefinitions) repositoryDefinitions = new RepositoryDefinitionList()
         repositoryDefinitions.repositories.each {
             initializeRepoFromDefinition(it)
         }
@@ -70,6 +72,7 @@ class RundeckRepositoryManager implements RepositoryManager {
     void addRepository(final RepositoryDefinition repositoryDefinition) {
         initializeRepoFromDefinition(repositoryDefinition)
         repositoryDefinitions.repositories.add(repositoryDefinition)
+        syncRepository(repositoryDefinition.repositoryName)
         saveRepositoryDefinitionList()
     }
 
@@ -80,7 +83,6 @@ class RundeckRepositoryManager implements RepositoryManager {
 
     private void initializeRepoFromDefinition(final RepositoryDefinition repositoryDefinition) {
         VerbArtifactRepository repo = repositoryFactory.createRepository(repositoryDefinition)
-        println repo.manifestService.syncManifest()
         repositories[repositoryDefinition.repositoryName] = repo
     }
 

@@ -16,6 +16,9 @@
 package com.rundeck.verb.client.repository
 
 import com.rundeck.verb.ResponseBatch
+import com.rundeck.verb.artifact.ArtifactType
+import com.rundeck.verb.client.RundeckVerbClient
+import com.rundeck.verb.client.TestUtils
 import com.rundeck.verb.client.manifest.MemoryManifestService
 import com.rundeck.verb.repository.RepositoryDefinition
 import com.rundeck.verb.repository.RepositoryOwner
@@ -31,11 +34,15 @@ class FilesystemArtifactRepositoryTest extends Specification {
     @Shared
     File repoManifest
     @Shared
+    File buildDir
+    @Shared
+    String builtNotifierPath = "Notifier/build/libs/Notifier-0.1.0-SNAPSHOT.jar" //assumes buildDir directory
+    @Shared
     FilesystemArtifactRepository repo
 
     def setupSpec() {
+        buildDir = File.createTempDir()
         repoBase = File.createTempDir()
-        println repoBase.absolutePath
         repoManifest = new File(repoBase, "manifest.json")
         repoManifest.createNewFile()
         repoManifest << "{}"
@@ -46,14 +53,15 @@ class FilesystemArtifactRepositoryTest extends Specification {
         repoDef.owner = RepositoryOwner.PRIVATE
         repo = new FilesystemArtifactRepository(repoDef)
         repo.manifestService.syncManifest()
+        RundeckVerbClient client = new RundeckVerbClient()
+        client.createArtifactTemplate("Notifier", ArtifactType.JAVA_PLUGIN, "Notification", buildDir.absolutePath)
+        TestUtils.buildGradle(new File(buildDir, "Notifier"))
     }
 
     def "UploadArtifactMeta"() {
         when:
         ResponseBatch rbatch = repo.uploadArtifact(getClass().getClassLoader().getResourceAsStream("rundeck-verb-artifact.yaml"))
-        rbatch.messages.each {
-            println "${it.code} : ${it.message}"
-        }
+
         then:
         rbatch.batchSucceeded()
         new File(repoBase,"artifacts/4819d98fea70-0.1.yaml").exists()
@@ -61,14 +69,12 @@ class FilesystemArtifactRepositoryTest extends Specification {
 
     def "UploadArtifactBinary"() {
         when:
-        ResponseBatch rbatch = repo.uploadArtifact(getClass().getClassLoader().getResourceAsStream("binary-artifacts/SuperNotifier-0.1.0-SNAPSHOT.jar"))
-        rbatch.messages.each {
-            println "${it.code} : ${it.message}"
-        }
+        ResponseBatch rbatch = repo.uploadArtifact(new File(buildDir,builtNotifierPath).newInputStream())
+
         then:
         rbatch.batchSucceeded()
-        new File(repoBase,"artifacts/8fb8b21df658-0.1.yaml").exists()
-        new File(repoBase,"binary/8fb8b21df658-0.1.jar").exists()
+        new File(repoBase,"artifacts/882ddccbcdd9-0.1.yaml").exists()
+        new File(repoBase,"binary/882ddccbcdd9-0.1.jar").exists()
     }
 
     def "GetArtifact"() {
@@ -79,7 +85,7 @@ class FilesystemArtifactRepositoryTest extends Specification {
 
     def "GetArtifactBinary"() {
         expect:
-        repo.getArtifactBinary("8fb8b21df658")
+        repo.getArtifactBinary("882ddccbcdd9")
     }
 
 

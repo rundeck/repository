@@ -26,11 +26,9 @@ class JavaPluginTemplateGeneratorTest extends Specification {
     def "Create Template"() {
         when:
         File tmpDir = File.createTempDir()
-        println tmpDir.absolutePath
         JavaPluginTemplateGenerator generator = new JavaPluginTemplateGenerator()
         generator.createTemplate("My Great Plugin","Notification",tmpDir.absolutePath)
         ResponseBatch response = validator.validate(new File(tmpDir, "/MyGreatPlugin/"+Constants.ARTIFACT_META_FILE_NAME).newInputStream())
-        response.messages.each { println it.message }
 
         then:
         new File(tmpDir,"/MyGreatPlugin/build.gradle").exists()

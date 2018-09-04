@@ -70,7 +70,6 @@ class ScriptPluginTemplateGenerator implements ArtifactTypeTemplateGenerator {
                 if (!remainingPath.isEmpty()) {
                     new File(destDir, remainingPath).mkdirs()
                 }
-                //println TEMPLATE_BASE+fileName
                 File destFile = new File(destDir, remainingPath + "/" + fileName)
 
                 FileWriter fileOut = new FileWriter(destFile)

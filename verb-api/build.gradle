@@ -13,7 +13,7 @@ plugins {
 }
 
 group = 'com.rundeck.verb'
-archivesBaseName = 'VerbApi'
+archivesBaseName = 'verb-api'
 version = "0.1"
 
 dependencies {
@@ -30,4 +30,25 @@ repositories {
     // You can declare any Maven/Ivy/file repository here.
     mavenLocal()
     jcenter()
+}
+
+task('createPom').doLast {
+    pom {
+        project {
+            artifactId 'verb-api'
+            groupId "org.rundeck.verb"
+            inceptionYear '2018'
+            packaging 'jar'
+            version version
+            name( 'Rundeck Verb Api')
+            url 'http://rundeck.org'
+            licenses {
+                license {
+                    name 'The Apache Software License, Version 2.0'
+                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    distribution 'repo'
+                }
+            }
+        }
+    }.writeTo("pom.xml")
 }

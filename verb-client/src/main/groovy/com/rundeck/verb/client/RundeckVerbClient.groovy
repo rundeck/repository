@@ -104,7 +104,6 @@ class RundeckVerbClient implements VerbClient {
             props.load(new FileReader(Constants.VERB_CLIENT_CONFIG_FILE))
             clientProps.putAll(props)
         } catch(Exception ex) {
-            println "no rundeck network props found using defaults"
             //log.warn("unable to load rundeck network properties, using defaults")
         }
     }

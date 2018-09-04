@@ -98,7 +98,6 @@ class FilesystemArtifactRepository implements VerbArtifactRepository {
         ResponseBatch rbatch = new ResponseBatch()
         try {
             File saveFile = new File(repoBase,ARTIFACT_BASE+artifact.artifactMetaFileName)
-            println "Saving artifact to: ${saveFile.absolutePath}"
             saveFile << inputStream
             recreateAndSaveManifest()
             manifestService.syncManifest()
@@ -113,7 +112,6 @@ class FilesystemArtifactRepository implements VerbArtifactRepository {
         ResponseBatch rbatch = new ResponseBatch()
         try {
             File saveFile = new File(repoBase,BINARY_BASE+artifact.artifactBinaryFileName)
-            println "Saving artifact to: ${saveFile.absolutePath}"
             saveFile << inputStream
             rbatch.addMessage(ResponseMessage.success())
         } catch(Exception ex) {

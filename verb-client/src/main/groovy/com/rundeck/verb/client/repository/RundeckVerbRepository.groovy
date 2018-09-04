@@ -94,7 +94,6 @@ class RundeckVerbRepository implements VerbArtifactRepository {
         try {
             Request rq = new Request.Builder().method("POST", body).url(rundeckVerbEndpoint+"/upload/binary/${ArtifactUtils.artifactBinaryFileName(rundeckVerbArtifact)}".toString()).build()
             response = client.newCall(rq).execute()
-            println response.body().string()
             rbatch.addMessage(ResponseMessage.success())
         } catch(Exception ex) {
             ex.printStackTrace()
@@ -113,7 +112,6 @@ class RundeckVerbRepository implements VerbArtifactRepository {
             OkHttpClient client = new OkHttpClient();
             Request rq = new Request.Builder().method("POST", body).url(rundeckVerbEndpoint+"/upload/artifact/${ArtifactUtils.artifactMetaFileName(rundeckVerbArtifact)}".toString()).build()
             response = client.newCall(rq).execute()
-            println response.body().string()
             rbatch.addMessage(ResponseMessage.success())
         } catch(Exception ex) {
             ex.printStackTrace()

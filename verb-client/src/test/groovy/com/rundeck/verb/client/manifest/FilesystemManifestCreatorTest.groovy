@@ -31,9 +31,7 @@ class FilesystemManifestCreatorTest extends Specification {
     def "Create Manifests Handling multiple versions"() {
         setup:
         File tempManifestDir = File.createTempDir()
-        println "manifest dir: ${tempManifestDir.absolutePath}"
         File tempScriptDir = File.createTempDir()
-        println "script dir: ${tempScriptDir.absolutePath}"
         ScriptPluginTemplateGenerator sgen = new ScriptPluginTemplateGenerator()
         String artifactId = ArtifactUtils.archiveNameToId("Script Plugin Multiver")
         sgen.createTemplate("Script Plugin Multiver","Notification",tempScriptDir.absolutePath)
