@@ -15,6 +15,7 @@
  */
 package com.rundeck.verb.client.generator
 
+import com.rundeck.verb.client.validators.YamlArtifactMetaValidator
 import spock.lang.Specification
 
 
@@ -22,14 +23,18 @@ class MetaTemplateGeneratorTest extends Specification {
     def "Create Meta Template"() {
         setup:
         File destDir = File.createTempDir()
+        File desinationFile = new File(destDir,"my-artifact/rundeck-verb-artifact.yaml")
 
         when:
         MetaTemplateGenerator gen = new MetaTemplateGenerator()
         def rbatch = gen.createTemplate("My Artifact","Notification",destDir.absolutePath)
-
+        YamlArtifactMetaValidator validator = new YamlArtifactMetaValidator()
+        def validationBatch = validator.validate(desinationFile.newInputStream())
+        
         then:
         rbatch.batchSucceeded()
-        new File(destDir,"my-artifact/rundeck-verb-artifact.yaml").exists()
+        desinationFile.exists()
+        validationBatch.batchSucceeded()
 
     }
 }
