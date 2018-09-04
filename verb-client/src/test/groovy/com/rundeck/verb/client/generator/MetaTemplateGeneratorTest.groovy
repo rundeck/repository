@@ -30,7 +30,7 @@ class MetaTemplateGeneratorTest extends Specification {
         def rbatch = gen.createTemplate("My Artifact","Notification",destDir.absolutePath)
         YamlArtifactMetaValidator validator = new YamlArtifactMetaValidator()
         def validationBatch = validator.validate(desinationFile.newInputStream())
-        
+
         then:
         rbatch.batchSucceeded()
         desinationFile.exists()

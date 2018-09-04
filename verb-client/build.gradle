@@ -12,13 +12,13 @@ dependencies {
     // Use the latest Groovy version for building this library
     compile 'org.codehaus.groovy:groovy-all:2.4.13'
     compile project(":verb-api")
-    compile "org.rundeck:rundeck-core:3.0.1-SNAPSHOT"
-    compile "org.rundeck:rundeck-storage-filesys:3.0.1-SNAPSHOT"
+    compile "org.rundeck:rundeck-core:3.0.5-20180828"
+    compile "org.rundeck:rundeck-storage-filesys:3.0.5-20180828"
     compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.0'
     compile 'com.github.java-json-tools:json-schema-validator:2.2.10'
     compile 'org.bouncycastle:bcprov-jdk15on:1.56'
     compile 'org.bouncycastle:bcpg-jdk15on:1.56'
-    compile "com.squareup.okhttp3:okhttp:3.6.0"
+    compile "com.squareup.okhttp3:okhttp:3.7.0"
     // Use the awesome Spock testing and specification framework
     testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
 }
