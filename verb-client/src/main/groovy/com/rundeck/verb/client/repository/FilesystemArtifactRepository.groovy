@@ -100,7 +100,6 @@ class FilesystemArtifactRepository implements VerbArtifactRepository {
             File saveFile = new File(repoBase,ARTIFACT_BASE+artifact.artifactMetaFileName)
             saveFile << inputStream
             recreateAndSaveManifest()
-            manifestService.syncManifest()
             rbatch.addMessage(ResponseMessage.success())
         } catch(Exception ex) {
             rbatch.addMessage(new ResponseMessage(code: ResponseCodes.META_UPLOAD_FAILED,message:ex.message))
@@ -125,7 +124,9 @@ class FilesystemArtifactRepository implements VerbArtifactRepository {
         return manifestService
     }
 
+    @Override
     void recreateAndSaveManifest() {
         manifestSource.saveManifest(manifestCreator.createManifest())
+        manifestService.syncManifest()
     }
 }

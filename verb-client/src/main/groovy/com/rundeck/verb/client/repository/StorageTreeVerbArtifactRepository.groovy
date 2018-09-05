@@ -40,7 +40,8 @@ import org.rundeck.storage.data.DataUtil
 class StorageTreeVerbArtifactRepository implements VerbArtifactRepository {
     static final String ARTIFACT_BASE = "artifacts/"
     static final String BINARY_BASE = "binary/"
-    private StorageTree storageTree
+    @PackageScope
+    StorageTree storageTree
     RepositoryDefinition repositoryDefinition
     private final ManifestService manifestService
     private final RepositoryEventEmitter eventEmitter
@@ -109,7 +110,6 @@ class StorageTreeVerbArtifactRepository implements VerbArtifactRepository {
             response.messages.add(new ResponseMessage(code:ResponseCodes.SUCCESS))
             //recreate manifest
             recreateAndSaveManifest()
-            manifestService.syncManifest()
             //emit event that repo was updated
             if(eventEmitter) {
                 eventEmitter.emit(new RepositoryUpdateEvent(repositoryDefinition.repositoryName,artifactId))
@@ -144,8 +144,10 @@ class StorageTreeVerbArtifactRepository implements VerbArtifactRepository {
         return manifestService
     }
 
+    @Override
     void recreateAndSaveManifest() {
         manifestSource.saveManifest(manifestCreator.createManifest())
+        manifestService.syncManifest()
     }
 
 }

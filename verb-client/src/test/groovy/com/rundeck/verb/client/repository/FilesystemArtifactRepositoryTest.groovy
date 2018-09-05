@@ -15,11 +15,13 @@
  */
 package com.rundeck.verb.client.repository
 
+import com.google.common.io.Files
+import com.rundeck.verb.Constants
 import com.rundeck.verb.ResponseBatch
 import com.rundeck.verb.artifact.ArtifactType
 import com.rundeck.verb.client.RundeckVerbClient
 import com.rundeck.verb.client.TestUtils
-import com.rundeck.verb.client.manifest.MemoryManifestService
+import com.rundeck.verb.client.util.ArtifactUtils
 import com.rundeck.verb.repository.RepositoryDefinition
 import com.rundeck.verb.repository.RepositoryOwner
 import com.rundeck.verb.repository.RepositoryType
@@ -39,6 +41,8 @@ class FilesystemArtifactRepositoryTest extends Specification {
     String builtNotifierPath = "Notifier/build/libs/Notifier-0.1.0-SNAPSHOT.jar" //assumes buildDir directory
     @Shared
     FilesystemArtifactRepository repo
+    @Shared
+    RundeckVerbClient client
 
     def setupSpec() {
         buildDir = File.createTempDir()
@@ -47,13 +51,14 @@ class FilesystemArtifactRepositoryTest extends Specification {
         repoManifest.createNewFile()
         repoManifest << "{}"
         RepositoryDefinition repoDef = new RepositoryDefinition()
+        repoDef.repositoryName = "private-test"
         repoDef.configProperties.repositoryLocation = repoBase.absolutePath
         repoDef.configProperties.manifestLocation = repoManifest.absolutePath
         repoDef.type = RepositoryType.FILE
         repoDef.owner = RepositoryOwner.PRIVATE
         repo = new FilesystemArtifactRepository(repoDef)
         repo.manifestService.syncManifest()
-        RundeckVerbClient client = new RundeckVerbClient()
+        client = new RundeckVerbClient()
         client.createArtifactTemplate("Notifier", ArtifactType.JAVA_PLUGIN, "Notification", buildDir.absolutePath)
         TestUtils.buildGradle(new File(buildDir, "Notifier"))
     }
@@ -88,5 +93,21 @@ class FilesystemArtifactRepositoryTest extends Specification {
         repo.getArtifactBinary("882ddccbcdd9")
     }
 
+    def "RefreshAndSaveManifest"() {
+        when:
+        repo.manifestService.listArtifacts().size() == 2
+        String manualPlacementPluginId = ArtifactUtils.archiveNameToId("ManualManifestTester")
+        client.createArtifactTemplate("ManualManifestTester",ArtifactType.META,"NodeExecutor",buildDir.absolutePath)
+        Files.copy(
+                new File(buildDir, "manualmanifesttester/${Constants.ARTIFACT_META_FILE_NAME}"),
+                new File(repoBase, "artifacts/${manualPlacementPluginId}-0.1.yaml")
+        )
+        repo.recreateAndSaveManifest()
+
+        then:
+        repo.manifestService.listArtifacts().size() == 3
+        repo.manifestService.listArtifacts().any { it.id == manualPlacementPluginId }
+
+    }
 
 }

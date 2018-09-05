@@ -26,6 +26,8 @@ interface RepositoryManager {
     void addRepository(RepositoryDefinition repositoryDefinition)
     void syncRepository(String repositoryName)
     void syncRepositories()
+    void refreshRepositoryManifest(String repositoryName)
+    void refreshRepositoryManifests()
     List<String> listRepositories()
     ResponseBatch uploadArtifact(String repositoryName, InputStream artifactInputStream)
     Collection<ManifestSearchResult> searchRepositories(ManifestSearch search)

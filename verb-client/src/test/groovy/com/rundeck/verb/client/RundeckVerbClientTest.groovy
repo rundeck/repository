@@ -23,7 +23,6 @@ import com.rundeck.verb.client.repository.VerbRepositoryFactory
 import com.rundeck.verb.client.repository.RundeckRepositoryManager
 import com.rundeck.verb.client.util.ArtifactUtils
 import com.rundeck.verb.client.util.ResourceFactory
-import org.rundeck.storage.data.DataUtil
 import org.rundeck.storage.data.file.FileTreeUtil
 import spock.lang.Shared
 import spock.lang.Specification
@@ -70,7 +69,6 @@ class RundeckVerbClientTest extends Specification {
 
     }
 
-    //This test depends upon the upload artifact to repo test running first and putting an artifact in the repo
     def "Install Artifact To Plugin Storage"() {
         setup:
         File pluginRoot = new File("/tmp/verb-plugins")
@@ -85,12 +83,7 @@ class RundeckVerbClientTest extends Specification {
 
         ZipFile bin = new ZipFile(new File(buildDir,builtNotifierPath))
         RundeckVerbArtifact artifact = ArtifactUtils.createArtifactFromStream(ArtifactUtils.extractArtifactMetaFromZip(bin))
-        println "attempting to install: ${artifact.id}"
         def response = client.installArtifact("private",artifact.id)
-
-        response.messages.each {
-            println "${it.code} : ${it.message}"
-        }
 
         then:
         response.batchSucceeded()

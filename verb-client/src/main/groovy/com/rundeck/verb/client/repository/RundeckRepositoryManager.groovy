@@ -100,6 +100,16 @@ class RundeckRepositoryManager implements RepositoryManager {
     }
 
     @Override
+    void refreshRepositoryManifest(final String repositoryName) {
+        repositories[repositoryName].recreateAndSaveManifest()
+    }
+
+    @Override
+    void refreshRepositoryManifests() {
+        repositories.values().each { it.recreateAndSaveManifest() }
+    }
+
+    @Override
     ResponseBatch uploadArtifact(final String repositoryName, final InputStream artifactInputStream) {
         if(!repositories.containsKey(repositoryName)) return new ResponseBatch().withMessage(new ResponseMessage(code: ResponseCodes.REPO_DOESNT_EXIST,message:"Repository ${repositoryName} does not exist"))
         return repositories[repositoryName].uploadArtifact(artifactInputStream)

@@ -70,6 +70,12 @@ class RundeckVerbClient implements VerbClient {
     }
 
     @Override
+    void refreshRepositoryManifest(final String repositoryName) {
+        if(repositoryName) repositoryManager.refreshRepositoryManifest(repositoryName)
+        else repositoryManager.refreshRepositoryManifest()
+    }
+
+    @Override
     Collection<ManifestSearchResult> searchManifests(final ManifestSearch search) {
         return repositoryManager.searchRepositories(search)
     }

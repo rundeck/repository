@@ -26,4 +26,5 @@ interface VerbArtifactRepository {
     InputStream getArtifactBinary(String artifactId, String version)
     ResponseBatch uploadArtifact(InputStream artifactInputStream)
     ManifestService getManifestService()
+    void recreateAndSaveManifest()
 }

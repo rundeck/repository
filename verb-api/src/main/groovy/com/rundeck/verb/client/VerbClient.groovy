@@ -44,5 +44,6 @@ interface VerbClient {
     VerbArtifact getArtifact(String repositoryName, String artifactId, String artifactVersion)
     InputStream getArtifactBinary(String repositoryName, String artifactId, String artifactVersion)
     void syncInstalledManifests()
+    void refreshRepositoryManifest(String repositoryName)
 
 }

@@ -127,4 +127,8 @@ class RundeckVerbRepository implements VerbArtifactRepository {
         return manifestService
     }
 
+    @Override
+    void recreateAndSaveManifest() {
+        //no-op
+    }
 }
