@@ -82,12 +82,12 @@ class RundeckRepositoryManager implements RepositoryManager {
     }
 
     private void initializeRepoFromDefinition(final RepositoryDefinition repositoryDefinition) {
-        VerbArtifactRepository repo = repositoryFactory.createRepository(repositoryDefinition)
-        repositories[repositoryDefinition.repositoryName] = repo
+        repositories[repositoryDefinition.repositoryName] = repositoryFactory.createRepository(repositoryDefinition)
     }
 
     @Override
     void syncRepository(final String repositoryName) {
+        if(!repositories.containsKey(repositoryName)) throw new Exception("Repository ${repositoryName} does not exist.")
         repositories[repositoryName].manifestService.syncManifest()
     }
 
@@ -101,6 +101,7 @@ class RundeckRepositoryManager implements RepositoryManager {
 
     @Override
     void refreshRepositoryManifest(final String repositoryName) {
+        if(!repositories.containsKey(repositoryName)) throw new Exception("Repository ${repositoryName} does not exist.")
         repositories[repositoryName].recreateAndSaveManifest()
     }
 
@@ -127,6 +128,7 @@ class RundeckRepositoryManager implements RepositoryManager {
 
     @Override
     ManifestSearchResult searchRepository(final String repositoryName, final ManifestSearch search) {
+        if(!repositories.containsKey(repositoryName)) throw new Exception("Repository ${repositoryName} does not exist.")
         ManifestSearchResult result = new ManifestSearchResult(repositoryName:repositoryName)
         result.results = repositories[repositoryName].manifestService.searchArtifacts(search)
         return result
@@ -145,6 +147,7 @@ class RundeckRepositoryManager implements RepositoryManager {
 
     @Override
     Collection<ManifestSearchResult> listArtifacts(String repoName, final Integer offset, final Integer max) {
+        if(!repositories.containsKey(repoName)) throw new Exception("Repository ${repoName} does not exist.")
         def results = []
         ManifestSearchResult result = new ManifestSearchResult(repositoryName: repoName)
         result.results = repositories[repoName].manifestService.listArtifacts(offset,max)
@@ -154,11 +157,13 @@ class RundeckRepositoryManager implements RepositoryManager {
 
     @Override
     VerbArtifact getArtifact(final String repositoryName, final String artifactId, final String artifactVersion = null) {
+        if(!repositories.containsKey(repositoryName)) return new ResponseBatch().withMessage(new ResponseMessage(code: ResponseCodes.REPO_DOESNT_EXIST,message:"Repository ${repositoryName} does not exist"))
         return repositories[repositoryName].getArtifact(artifactId,artifactVersion)
     }
 
     @Override
     InputStream getArtifactBinary(final String repositoryName, final String artifactId, final String artifactVersion = null) {
+        if(!repositories.containsKey(repositoryName)) return new ResponseBatch().withMessage(new ResponseMessage(code: ResponseCodes.REPO_DOESNT_EXIST,message:"Repository ${repositoryName} does not exist"))
         return repositories[repositoryName].getArtifactBinary(artifactId,artifactVersion)
     }
 }
