@@ -157,13 +157,13 @@ class RundeckRepositoryManager implements RepositoryManager {
 
     @Override
     VerbArtifact getArtifact(final String repositoryName, final String artifactId, final String artifactVersion = null) {
-        if(!repositories.containsKey(repositoryName)) return new ResponseBatch().withMessage(new ResponseMessage(code: ResponseCodes.REPO_DOESNT_EXIST,message:"Repository ${repositoryName} does not exist"))
+        if(!repositories.containsKey(repositoryName)) throw new Exception("Repository ${repositoryName} does not exist.")
         return repositories[repositoryName].getArtifact(artifactId,artifactVersion)
     }
 
     @Override
     InputStream getArtifactBinary(final String repositoryName, final String artifactId, final String artifactVersion = null) {
-        if(!repositories.containsKey(repositoryName)) return new ResponseBatch().withMessage(new ResponseMessage(code: ResponseCodes.REPO_DOESNT_EXIST,message:"Repository ${repositoryName} does not exist"))
+        if(!repositories.containsKey(repositoryName)) throw new Exception("Repository ${repositoryName} does not exist.")
         return repositories[repositoryName].getArtifactBinary(artifactId,artifactVersion)
     }
 }

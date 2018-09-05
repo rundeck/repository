@@ -41,8 +41,27 @@ interface VerbClient {
     Collection<ManifestSearchResult> searchManifests(ManifestSearch search)
     Collection<ManifestSearchResult> listArtifacts(Integer offset, Integer limit)
     Collection<ManifestSearchResult> listArtifacts(String repoName, Integer offset, Integer limit)
+    /**
+     * Get the artifact metadata from the repository
+     *
+     * @param repositoryName
+     * @param artifactId
+     * @param artifactVersion
+     * @return
+     */
     VerbArtifact getArtifact(String repositoryName, String artifactId, String artifactVersion)
+    /**
+     * Get the artifact binary from the repository if it exists. If a verb artifact specifies a link to the binary in the
+     * metadata, that link will be used to download the binary
+     * @param repositoryName
+     * @param artifactId
+     * @param artifactVersion
+     * @return
+     */
     InputStream getArtifactBinary(String repositoryName, String artifactId, String artifactVersion)
+    /**
+     * Trigger all installed repositories to re-pull the manifest sources and refresh the in memory lists of the artifacts
+     */
     void syncInstalledManifests()
     /**
      * Trigger a manual recreation of the manifest for the given repo. This is useful if someone

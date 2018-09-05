@@ -63,4 +63,22 @@ class RundeckRepositoryManagerTest extends Specification {
         response.messages[0].code == ResponseCodes.REPO_DOESNT_EXIST
     }
 
+    def "Get artifact referencing a bad repo name should throw an exception"() {
+        when:
+        RundeckRepositoryManager manager = new RundeckRepositoryManager()
+        manager.getArtifact("invalid","doesn'tmatter")
+        then:
+        Exception ex = thrown()
+        ex.message == "Repository invalid does not exist."
+    }
+
+    def "Get artifact binary referencing a bad repo name should throw an exception"() {
+        when:
+        RundeckRepositoryManager manager = new RundeckRepositoryManager()
+        manager.getArtifactBinary("invalid","doesn'tmatter")
+        then:
+        Exception ex = thrown()
+        ex.message == "Repository invalid does not exist."
+    }
+
 }
