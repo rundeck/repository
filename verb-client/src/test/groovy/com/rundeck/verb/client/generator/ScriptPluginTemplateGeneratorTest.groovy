@@ -15,6 +15,7 @@
  */
 package com.rundeck.verb.client.generator
 
+import com.rundeck.verb.client.validators.YamlArtifactMetaValidator
 import spock.lang.Specification
 
 
@@ -26,12 +27,14 @@ class ScriptPluginTemplateGeneratorTest extends Specification {
         when:
         ScriptPluginTemplateGenerator generator = new ScriptPluginTemplateGenerator()
         generator.createTemplate("Test Script Plugin","WorkflowNodeStep",destDir.absolutePath)
+        YamlArtifactMetaValidator validator = new YamlArtifactMetaValidator()
+        def validationBatch = validator.validate(new File(destDir,"test-script-plugin/rundeck-verb-artifact.yaml").newInputStream())
 
         then:
         new File(destDir,"test-script-plugin/plugin.yaml").exists()
-        new File(destDir,"test-script-plugin/rundeck-verb-artifact.yaml").exists()
         new File(destDir,"test-script-plugin/contents/exec").exists()
         new File(destDir,"test-script-plugin/resources/icon.png").exists()
+        validationBatch.batchSucceeded()
 
     }
 }

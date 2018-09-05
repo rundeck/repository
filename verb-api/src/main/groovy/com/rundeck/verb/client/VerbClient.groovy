@@ -44,6 +44,11 @@ interface VerbClient {
     VerbArtifact getArtifact(String repositoryName, String artifactId, String artifactVersion)
     InputStream getArtifactBinary(String repositoryName, String artifactId, String artifactVersion)
     void syncInstalledManifests()
+    /**
+     * Trigger a manual recreation of the manifest for the given repo. This is useful if someone
+     * add or removes artifacts from a repo without using the client
+     * @param repositoryName
+     */
     void refreshRepositoryManifest(String repositoryName)
 
 }
