@@ -37,6 +37,7 @@ class ScriptPluginTemplateGenerator implements ArtifactTypeTemplateGenerator {
         ResponseBatch batch = new ResponseBatch()
         if(!ALLOWED_SERVICE_TYPES.contains(providedService)) {
             batch.addMessage(new ResponseMessage(code: ResponseCodes.TEMPLATE_GENERATION_FAILED,message:"Script plugins do not support serivice: ${providedService}. Allowed types are: ${ALLOWED_SERVICE_TYPES.join(", ")}"))
+            return batch
         }
         try {
             templateProperties["newPluginId"] = ArtifactUtils.archiveNameToId(artifactName)
