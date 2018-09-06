@@ -48,7 +48,7 @@ class RundeckVerbClientTest extends Specification {
         RundeckVerbClient client = new RundeckVerbClient()
         client.createArtifactTemplate("Notifier", ArtifactType.JAVA_PLUGIN,"Notification",buildDir.absolutePath)
         TestUtils.buildGradle(new File(buildDir,"Notifier"))
-        client.createArtifactTemplate("ScriptIt", ArtifactType.SCRIPT_PLUGIN,"NodeStep",buildDir.absolutePath)
+        client.createArtifactTemplate("ScriptIt", ArtifactType.SCRIPT_PLUGIN,"NodeExecutor",buildDir.absolutePath)
         TestUtils.zipDir(buildDir.absolutePath+"/scriptit")
         client.createArtifactTemplate("DownloadMe", ArtifactType.META,"NodeStep",buildDir.absolutePath)
     }

@@ -27,7 +27,7 @@ class ArtifactUtilsTest extends Specification {
         setup:
         RundeckVerbClient client = new RundeckVerbClient()
         File buildDir = File.createTempDir()
-        client.createArtifactTemplate("ScriptIt", ArtifactType.SCRIPT_PLUGIN, "NodeStep", buildDir.absolutePath)
+        client.createArtifactTemplate("ScriptIt", ArtifactType.SCRIPT_PLUGIN, "NodeExecutor", buildDir.absolutePath)
         TestUtils.zipDir(buildDir.absolutePath+ "/scriptit")
 
         expect:
