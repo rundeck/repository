@@ -20,16 +20,17 @@ class ManifestEntry {
     String name
     String author
     String description
+    String organization
     String artifactType
     String support
     String currentVersion
     String rundeckCompatibility
-    String digitalSignatureUrl
+    String binaryLink
     Long lastRelease
     Collection<String> tags = []
     Collection<String> providesServices = []
-    Collection<String> versions = []
+    Collection<String> oldVersions = []
     Integer rating //1-5 stars
     Integer installs
-
+    boolean installed
 }

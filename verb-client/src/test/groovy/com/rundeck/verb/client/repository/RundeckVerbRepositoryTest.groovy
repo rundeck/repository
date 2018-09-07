@@ -23,12 +23,12 @@ class RundeckVerbRepositoryTest extends Specification {
     def "UploadArtifactBinary"() {
     }
 
-    def "UploadArtifactMeta"() {
-        when:
-        RundeckVerbRepository repository = new RundeckVerbRepository(rundeckVerbUploadEndpoint:"https://2n2gfj5lgh.execute-api.us-east-1.amazonaws.com/dev/upload")
-        ResponseBatch batch = repository.uploadArtifact(getClass().getClassLoader().getResourceAsStream("rundeck-verb-artifact.yaml"))
-        then:
-        batch.batchSucceeded()
-
-    }
+//    def "UploadArtifactMeta"() {
+//        when:
+//        RundeckVerbRepository repository = new RundeckVerbRepository(rundeckVerbUploadEndpoint:"https://2n2gfj5lgh.execute-api.us-east-1.amazonaws.com/dev/upload")
+//        ResponseBatch batch = repository.uploadArtifact(getClass().getClassLoader().getResourceAsStream("rundeck-verb-artifact.yaml"))
+//        then:
+//        batch.batchSucceeded()
+//
+//    }
 }

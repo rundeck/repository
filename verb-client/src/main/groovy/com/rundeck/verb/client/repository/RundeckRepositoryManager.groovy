@@ -22,8 +22,6 @@ import com.rundeck.verb.ResponseBatch
 import com.rundeck.verb.ResponseCodes
 import com.rundeck.verb.ResponseMessage
 import com.rundeck.verb.artifact.VerbArtifact
-import com.rundeck.verb.client.RundeckVerbClient
-import com.rundeck.verb.client.RundeckVerbConfigurationProperties
 import com.rundeck.verb.manifest.search.ManifestSearch
 import com.rundeck.verb.manifest.search.ManifestSearchResult
 import com.rundeck.verb.repository.RepositoryDefinition
@@ -38,16 +36,12 @@ class RundeckRepositoryManager implements RepositoryManager {
     private ObjectMapper mapper = new ObjectMapper()
     private YAMLFactory yamlFactory = new YAMLFactory()
     private Map<String, VerbArtifactRepository> repositories = [:]
-    private RepositoryDefinitionList repositoryDefinitions = new RepositoryDefinitionList()
+    private RepositoryDefinitionList repositoryDefinitions
     private URL repositoryDefinitionDatasource
     private RepositoryFactory repositoryFactory
 
     RundeckRepositoryManager() {
-        this(new FilesystemRepositoryFactory())
-        String defaultRepoListUrl = RundeckVerbClient.clientProperties[
-                RundeckVerbConfigurationProperties.CLIENT_DEFAULT_REPO_DEFN_LIST]
-        println "default repo list " + defaultRepoListUrl
-        if(defaultRepoListUrl) setRepositoryDefinitionListDatasourceUrl(defaultRepoListUrl)
+        this(new VerbRepositoryFactory())
     }
     RundeckRepositoryManager(RepositoryFactory repositoryFactory) {
         this.repositoryFactory = repositoryFactory
@@ -58,10 +52,12 @@ class RundeckRepositoryManager implements RepositoryManager {
         this.repositoryDefinitionDatasource = new URL(urlToRepositoryDefinitionListDatasource)
         repositories.clear()
         loadRepositories()
+        syncRepositories()
     }
 
     void loadRepositories() {
         repositoryDefinitions = mapper.readValue(yamlFactory.createParser(repositoryDefinitionDatasource),RepositoryDefinitionList)
+        if(!repositoryDefinitions) repositoryDefinitions = new RepositoryDefinitionList()
         repositoryDefinitions.repositories.each {
             initializeRepoFromDefinition(it)
         }
@@ -76,6 +72,7 @@ class RundeckRepositoryManager implements RepositoryManager {
     void addRepository(final RepositoryDefinition repositoryDefinition) {
         initializeRepoFromDefinition(repositoryDefinition)
         repositoryDefinitions.repositories.add(repositoryDefinition)
+        syncRepository(repositoryDefinition.repositoryName)
         saveRepositoryDefinitionList()
     }
 
@@ -85,13 +82,12 @@ class RundeckRepositoryManager implements RepositoryManager {
     }
 
     private void initializeRepoFromDefinition(final RepositoryDefinition repositoryDefinition) {
-        VerbArtifactRepository repo = repositoryFactory.createRepository(repositoryDefinition)
-        repo.manifestService.syncManifest()
-        repositories[repositoryDefinition.repositoryName] = repo
+        repositories[repositoryDefinition.repositoryName] = repositoryFactory.createRepository(repositoryDefinition)
     }
 
     @Override
     void syncRepository(final String repositoryName) {
+        if(!repositories.containsKey(repositoryName)) throw new Exception("Repository ${repositoryName} does not exist.")
         repositories[repositoryName].manifestService.syncManifest()
     }
 
@@ -101,6 +97,17 @@ class RundeckRepositoryManager implements RepositoryManager {
         repositories.values().each {
             it.manifestService.syncManifest()
         }
+    }
+
+    @Override
+    void refreshRepositoryManifest(final String repositoryName) {
+        if(!repositories.containsKey(repositoryName)) throw new Exception("Repository ${repositoryName} does not exist.")
+        repositories[repositoryName].recreateAndSaveManifest()
+    }
+
+    @Override
+    void refreshRepositoryManifests() {
+        repositories.values().each { it.recreateAndSaveManifest() }
     }
 
     @Override
@@ -121,13 +128,14 @@ class RundeckRepositoryManager implements RepositoryManager {
 
     @Override
     ManifestSearchResult searchRepository(final String repositoryName, final ManifestSearch search) {
+        if(!repositories.containsKey(repositoryName)) throw new Exception("Repository ${repositoryName} does not exist.")
         ManifestSearchResult result = new ManifestSearchResult(repositoryName:repositoryName)
         result.results = repositories[repositoryName].manifestService.searchArtifacts(search)
         return result
     }
 
     @Override
-    Collection<ManifestSearchResult> listArtifacts(final int offset, final int max) {
+    Collection<ManifestSearchResult> listArtifacts(final Integer offset, final Integer max) {
         def results = []
         repositories.values().each {
             ManifestSearchResult result = new ManifestSearchResult(repositoryName: it.repositoryDefinition.repositoryName)
@@ -138,12 +146,24 @@ class RundeckRepositoryManager implements RepositoryManager {
     }
 
     @Override
+    Collection<ManifestSearchResult> listArtifacts(String repoName, final Integer offset, final Integer max) {
+        if(!repositories.containsKey(repoName)) throw new Exception("Repository ${repoName} does not exist.")
+        def results = []
+        ManifestSearchResult result = new ManifestSearchResult(repositoryName: repoName)
+        result.results = repositories[repoName].manifestService.listArtifacts(offset,max)
+        results.add(result)
+        return results
+    }
+
+    @Override
     VerbArtifact getArtifact(final String repositoryName, final String artifactId, final String artifactVersion = null) {
+        if(!repositories.containsKey(repositoryName)) throw new Exception("Repository ${repositoryName} does not exist.")
         return repositories[repositoryName].getArtifact(artifactId,artifactVersion)
     }
 
     @Override
     InputStream getArtifactBinary(final String repositoryName, final String artifactId, final String artifactVersion = null) {
+        if(!repositories.containsKey(repositoryName)) throw new Exception("Repository ${repositoryName} does not exist.")
         return repositories[repositoryName].getArtifactBinary(artifactId,artifactVersion)
     }
 }

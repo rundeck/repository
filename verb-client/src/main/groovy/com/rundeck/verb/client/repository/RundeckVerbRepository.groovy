@@ -20,8 +20,10 @@ import com.rundeck.verb.ResponseCodes
 import com.rundeck.verb.ResponseMessage
 import com.rundeck.verb.artifact.VerbArtifact
 import com.rundeck.verb.client.artifact.RundeckVerbArtifact
+import com.rundeck.verb.client.manifest.MemoryManifestService
 import com.rundeck.verb.client.util.ArtifactFileset
 import com.rundeck.verb.client.util.ArtifactUtils
+import com.rundeck.verb.manifest.ManifestEntry
 import com.rundeck.verb.manifest.ManifestService
 import com.rundeck.verb.repository.RepositoryDefinition
 import com.rundeck.verb.repository.VerbArtifactRepository
@@ -34,9 +36,16 @@ import okhttp3.Response
 
 class RundeckVerbRepository implements VerbArtifactRepository {
 
+    private OkHttpClient client = new OkHttpClient();
+
     RepositoryDefinition repositoryDefinition
     ManifestService manifestService
-    String rundeckVerbUploadEndpoint
+    String rundeckVerbEndpoint
+
+    RundeckVerbRepository(String rundeckVerbEndpoint) {
+        this.rundeckVerbEndpoint = rundeckVerbEndpoint
+        this.manifestService = new MemoryManifestService(rundeckVerbEndpoint+"/manifest")
+    }
 
     @Override
     RepositoryDefinition getRepositoryDefinition() {
@@ -45,12 +54,25 @@ class RundeckVerbRepository implements VerbArtifactRepository {
 
     @Override
     VerbArtifact getArtifact(final String artifactId, final String version = null) {
-        throw new Exception("Not implemented yet.")
+        Response response
+        try {
+            String artifactVer = version ?: manifestService.getEntry(artifactId).currentVersion
+            Request rq = new Request.Builder().method("GET",null).url(rundeckVerbEndpoint+"/artifact/${ArtifactUtils.artifactMetaFileName(artifactId,artifactVer)}".toString()).build()
+            response = client.newCall(rq).execute()
+            return ArtifactUtils.createArtifactFromStream(response.body().byteStream())
+        } finally {
+            if(response) response.body().close()
+        }
     }
 
     @Override
     InputStream getArtifactBinary(final String artifactId, final String version = null) {
-        throw new Exception("Not implemented yet.")
+        ManifestEntry entry = manifestService.getEntry(artifactId)
+        String artifactVer = version ?: entry.currentVersion
+        String extension = ArtifactUtils.artifactTypeFromNice(entry.artifactType).extension
+        Request rq = new Request.Builder().method("GET",null).url(rundeckVerbEndpoint+"/binary/${ArtifactUtils.artifactBinaryFileName(artifactId,artifactVer,extension)}".toString()).build()
+        Response response = client.newCall(rq).execute()
+        return response.body().byteStream()
     }
 
     @Override
@@ -70,10 +92,8 @@ class RundeckVerbRepository implements VerbArtifactRepository {
         RequestBody body = RequestBody.create(MediaType.parse("application/octet-stream"), binaryFile)
         Response response = null
         try {
-            OkHttpClient client = new OkHttpClient();
-            Request rq = new Request.Builder().method("POST", body).url(rundeckVerbUploadEndpoint+"/binary/${ArtifactUtils.artifactBinaryFileName(rundeckVerbArtifact)}".toString()).build()
+            Request rq = new Request.Builder().method("POST", body).url(rundeckVerbEndpoint+"/upload/binary/${ArtifactUtils.artifactBinaryFileName(rundeckVerbArtifact)}".toString()).build()
             response = client.newCall(rq).execute()
-            println response.body().string()
             rbatch.addMessage(ResponseMessage.success())
         } catch(Exception ex) {
             ex.printStackTrace()
@@ -90,9 +110,8 @@ class RundeckVerbRepository implements VerbArtifactRepository {
         Response response = null
         try {
             OkHttpClient client = new OkHttpClient();
-            Request rq = new Request.Builder().method("POST", body).url(rundeckVerbUploadEndpoint+"/meta/${ArtifactUtils.artifactMetaFileName(rundeckVerbArtifact)}".toString()).build()
+            Request rq = new Request.Builder().method("POST", body).url(rundeckVerbEndpoint+"/upload/artifact/${ArtifactUtils.artifactMetaFileName(rundeckVerbArtifact)}".toString()).build()
             response = client.newCall(rq).execute()
-            println response.body().string()
             rbatch.addMessage(ResponseMessage.success())
         } catch(Exception ex) {
             ex.printStackTrace()
@@ -106,5 +125,10 @@ class RundeckVerbRepository implements VerbArtifactRepository {
     @Override
     ManifestService getManifestService() {
         return manifestService
+    }
+
+    @Override
+    void recreateAndSaveManifest() {
+        //no-op
     }
 }

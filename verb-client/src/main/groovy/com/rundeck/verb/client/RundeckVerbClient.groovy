@@ -70,18 +70,34 @@ class RundeckVerbClient implements VerbClient {
     }
 
     @Override
+    void refreshRepositoryManifest(final String repositoryName) {
+        if(repositoryName) repositoryManager.refreshRepositoryManifest(repositoryName)
+        else repositoryManager.refreshRepositoryManifest()
+    }
+
+    @Override
     Collection<ManifestSearchResult> searchManifests(final ManifestSearch search) {
         return repositoryManager.searchRepositories(search)
     }
 
     @Override
-    Collection<ManifestSearchResult> listArtifacts(int offset = 0, int limit = -1) {
+    Collection<ManifestSearchResult> listArtifacts(Integer offset = 0, Integer limit = -1) {
         return repositoryManager.listArtifacts(offset,limit)
+    }
+
+    @Override
+    Collection<ManifestSearchResult> listArtifacts(String repoName, Integer offset = 0, Integer limit = -1) {
+        return repositoryManager.listArtifacts(repoName, offset,limit)
     }
 
     @Override
     VerbArtifact getArtifact(final String repositoryName, final String artifactId, final String artifactVersion) {
         return repositoryManager.getArtifact(repositoryName,artifactId, artifactVersion)
+    }
+
+    @Override
+    InputStream getArtifactBinary(final String repositoryName, final String artifactId, final String artifactVersion) {
+        return repositoryManager.getArtifactBinary(repositoryName,artifactId, artifactVersion)
     }
 
     private static final Map clientProps
@@ -94,7 +110,6 @@ class RundeckVerbClient implements VerbClient {
             props.load(new FileReader(Constants.VERB_CLIENT_CONFIG_FILE))
             clientProps.putAll(props)
         } catch(Exception ex) {
-            println "no rundeck network props found using defaults"
             //log.warn("unable to load rundeck network properties, using defaults")
         }
     }

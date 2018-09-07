@@ -29,6 +29,8 @@ class FilesystemArtifactTemplateGenerator implements ArtifactTemplateGenerator {
     private ArtifactTypeTemplateGenerator getGenerator(ArtifactType artifactType) {
         switch(artifactType) {
             case ArtifactType.JAVA_PLUGIN: return new JavaPluginTemplateGenerator()
+            case ArtifactType.SCRIPT_PLUGIN: return new ScriptPluginTemplateGenerator()
+            case ArtifactType.META: return new MetaTemplateGenerator()
         }
     }
 }

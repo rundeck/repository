@@ -25,7 +25,7 @@ interface ManifestService {
 
     ResponseMessage syncManifest()
     ManifestEntry getEntry(String artifactId)
-    Collection<ManifestEntry> listArtifacts(int offset, int max)
+    Collection<ManifestEntry> listArtifacts(Integer offset, Integer max)
     Collection<ManifestEntry> searchArtifacts(ManifestSearch search)
 
 }

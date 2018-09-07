@@ -20,7 +20,7 @@ class RundeckVerbConfigurationProperties {
     static final String AUTHOR = "author"
     static final String AUTHOR_ID = "authorId"
     static final String DEV_BASE = "devBase"
-    static final String RUNDECK_VERSION = "3.0.x"
+    static final String RUNDECK_VERSION = "rundeckVersion"
 
     static final String CLIENT_DEFAULT_REPO_DEFN_LIST       = "default.repository.definition.list"
 

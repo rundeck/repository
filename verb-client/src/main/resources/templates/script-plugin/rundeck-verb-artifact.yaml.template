@@ -1,0 +1,22 @@
+Name: ${pluginName}
+Description: My script plugin description
+Organization: My organization
+Author: ${author}
+AuthorId: ${authorId}
+ArtifactType: script-plugin
+Version: '0.1'
+RundeckCompatibility: '${rundeckVersion}'
+Support: Community
+License: Apache-2.0
+Id: ${newPluginId}
+Tags:
+    - ${pluginLang}
+ProvidesServices:
+    - ${providedService}
+ThirdPartyDependencies : None
+SourceLink: ${devBase}/${sanitizedPluginName}
+WebLink: ${devBase}/${sanitizedPluginName}/README.md
+LogoLink: ${devBase}/${sanitizedPluginName}/logo.png
+
+#If you host your plugin binary outside the repository please link to it here.
+#BinaryLink: https://mydomain.com/rundeck-plugin-binary/${sanitizedPluginName}.zip

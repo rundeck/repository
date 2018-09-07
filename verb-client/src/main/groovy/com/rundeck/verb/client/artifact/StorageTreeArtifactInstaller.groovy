@@ -15,22 +15,22 @@
  */
 package com.rundeck.verb.client.artifact
 
-import com.dtolabs.rundeck.core.storage.ResourceMeta
-import com.dtolabs.rundeck.core.storage.StorageUtil
+import com.dtolabs.rundeck.core.storage.StorageTree
 import com.rundeck.verb.ResponseBatch
 import com.rundeck.verb.ResponseCodes
 import com.rundeck.verb.ResponseMessage
 import com.rundeck.verb.artifact.ArtifactInstaller
 import com.rundeck.verb.artifact.VerbArtifact
-import org.rundeck.storage.api.Tree
+import com.rundeck.verb.client.util.ResourceFactory
 import org.rundeck.storage.data.DataUtil
 
 
 class StorageTreeArtifactInstaller implements ArtifactInstaller {
 
-    private Tree<ResourceMeta> storageTree
+    private static final ResourceFactory RESOURCE_FACTORY = new ResourceFactory()
+    private StorageTree storageTree
 
-    StorageTreeArtifactInstaller(Tree<ResourceMeta> storageTree) {
+    StorageTreeArtifactInstaller(StorageTree storageTree) {
         this.storageTree = storageTree
     }
 
@@ -38,8 +38,8 @@ class StorageTreeArtifactInstaller implements ArtifactInstaller {
     ResponseBatch installArtifact(final VerbArtifact artifact, InputStream binaryInputStream) {
         ResponseBatch batch = new ResponseBatch()
         try {
-            String artifactKey = "plugins/"+artifact.id+"."+artifact.artifactType.extension
-            def resource = DataUtil.withStream(binaryInputStream, [:], StorageUtil.factory())
+            String artifactKey = "plugins/"+ artifact.getInstallationFileName()
+            def resource = DataUtil.withStream(binaryInputStream, [:], RESOURCE_FACTORY)
             if(storageTree.hasResource(artifactKey)) {
                 storageTree.updateResource(artifactKey, resource)
             } else {

@@ -61,9 +61,9 @@ class ArtifactUtils {
     static File getMetaFromUploadedFile(final File artifactFile) {
         try {
             ZipFile artifact = new ZipFile(artifactFile)
-            ZipEntry emeta = artifact.getEntry(Constants.ARTIFACT_META_FILE_NAME)
             File tmp = File.createTempFile("artifact","meta")
-            tmp << artifact.getInputStream(emeta)
+            tmp << extractArtifactMetaFromZip(artifact)
+
             return tmp
         } catch(ZipException zipEx) {
             //if the artifact is not a zip then set the destination to the artifact
@@ -74,12 +74,8 @@ class ArtifactUtils {
 
     static boolean isBinaryPlugin(final File artifactFile) {
         try {
-            ZipFile zip = new ZipFile(artifactFile)
-            zip.entries().each {
-                println it.name
-            }
-            ZipEntry e = zip.getEntry(Constants.ARTIFACT_META_FILE_NAME)
-            if(e) return true
+            new ZipFile(artifactFile)
+            return true
         } catch(ZipException zex) {
             //not a jar probably
         }
@@ -88,6 +84,10 @@ class ArtifactUtils {
 
     static InputStream extractArtifactMetaFromZip(final ZipFile artifactZip) {
         ZipEntry emeta = artifactZip.getEntry(Constants.ARTIFACT_META_FILE_NAME)
+        if(!emeta) {
+            ZipEntry root = artifactZip.entries().nextElement()
+            emeta = artifactZip.getEntry(root.name+Constants.ARTIFACT_META_FILE_NAME)
+        }
         artifactZip.getInputStream(emeta)
     }
 
@@ -99,6 +99,14 @@ class ArtifactUtils {
 
     static void writeArtifactManifestToFile(ArtifactManifest manifest, OutputStream outputStream) {
         mapper.writeValue(outputStream,manifest)
+    }
+
+    static String artifactManifestToJson(ArtifactManifest manifest) {
+        mapper.writeValueAsString(manifest)
+    }
+
+    static ArtifactManifest artifactManifestFromJson(String manifestJson) {
+        mapper.readValue(manifestJson, ArtifactManifest)
     }
 
     static String niceArtifactTypeName(ArtifactType type) {
@@ -123,15 +131,11 @@ class ArtifactUtils {
     }
 
     static String artifactBinaryFileName(final String artifactId, final String artifactVersion, final String artifactExtension) {
-        return artifactId+"-"+artifactVersion+artifactExtension
+        return artifactId+"-"+artifactVersion+"."+artifactExtension
     }
 
-    static String artifactMetaFileName(final VerbArtifact verbArtifact) {
-        return verbArtifact.id+"-"+verbArtifact.version+".yaml"
-    }
-
-    static  String artifactBinaryFileName(final VerbArtifact verbArtifact) {
-        return verbArtifact.id+"-"+verbArtifact.version+verbArtifact.artifactType.extension
+    static String sanitizedPluginName(final String artifactName) {
+        return artifactName.replace(" ", "-").replaceAll("[^a-zA-Z\\-]","").toLowerCase()
     }
 
     static String archiveNameToId(String archiveName) {

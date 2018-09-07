@@ -1,8 +1,9 @@
 Name: ${pluginName}
 Description: My plugin description
+Organization: My organization
 Author: ${author}
 AuthorId: ${authorId}
-ArtifactType: JAVA_PLUGIN
+ArtifactType: java-plugin
 Version: '0.1'
 RundeckCompatibility: '${rundeckVersion}'
 Support: Community

@@ -17,6 +17,8 @@ package com.rundeck.verb.client.manifest
 
 import com.dtolabs.rundeck.core.storage.StorageConverterPluginAdapter
 import com.dtolabs.rundeck.core.storage.StorageTimestamperConverter
+import com.rundeck.verb.client.TestUtils
+import com.rundeck.verb.client.util.ResourceFactory
 import com.rundeck.verb.manifest.ArtifactManifest
 import org.rundeck.storage.conf.TreeBuilder
 import org.rundeck.storage.data.DataUtil
@@ -27,13 +29,17 @@ import spock.lang.Specification
 class StorageTreeManifestCreatorTest extends Specification {
 
     def "Create Manifest"() {
-        when:
-        def tree = FileTreeUtil.forRoot(new File("/tmp/verb-repo"), DataUtil.contentFactory())
+        setup:
+        File repoBase = File.createTempDir()
+        def tree = FileTreeUtil.forRoot(repoBase, new ResourceFactory())
         TreeBuilder tbuilder = TreeBuilder.builder(tree)
         def timestamptree = tbuilder.convert(new StorageConverterPluginAdapter(
                 "builtin:timestamp",
                 new StorageTimestamperConverter()
         )).build()
+        timestamptree.createResource("artifacts/4819d98fea70-0.1.yaml",DataUtil.withStream(getClass().getClassLoader().getResourceAsStream("rundeck-verb-artifact.yaml"),[:],new ResourceFactory()))
+
+        when:
         StorageTreeManifestCreator manifestCreator = new StorageTreeManifestCreator(timestamptree)
         ArtifactManifest manifest = manifestCreator.createManifest()
 
@@ -41,4 +47,5 @@ class StorageTreeManifestCreatorTest extends Specification {
         manifest.entries.size() == 1
 
     }
+
 }

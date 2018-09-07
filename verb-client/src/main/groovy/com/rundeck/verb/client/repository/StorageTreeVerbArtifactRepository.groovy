@@ -15,49 +15,53 @@
  */
 package com.rundeck.verb.client.repository
 
-import com.dtolabs.rundeck.core.storage.ResourceMeta
-import com.dtolabs.rundeck.core.storage.StorageUtil
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.dtolabs.rundeck.core.storage.StorageTree
 import com.rundeck.verb.ResponseBatch
 import com.rundeck.verb.ResponseCodes
 import com.rundeck.verb.ResponseMessage
-import com.rundeck.verb.artifact.ArtifactType
 import com.rundeck.verb.artifact.VerbArtifact
 import com.rundeck.verb.client.artifact.RundeckVerbArtifact
+import com.rundeck.verb.client.manifest.MemoryManifestService
 import com.rundeck.verb.client.manifest.StorageTreeManifestCreator
+import com.rundeck.verb.client.manifest.StorageTreeManifestSource
 import com.rundeck.verb.client.util.ArtifactFileset
 import com.rundeck.verb.client.util.ArtifactUtils
+import com.rundeck.verb.client.util.ResourceFactory
 import com.rundeck.verb.events.RepositoryEventEmitter
 import com.rundeck.verb.events.RepositoryUpdateEvent
-import com.rundeck.verb.manifest.ArtifactManifest
 import com.rundeck.verb.manifest.ManifestEntry
 import com.rundeck.verb.manifest.ManifestService
+import com.rundeck.verb.manifest.ManifestSource
 import com.rundeck.verb.repository.RepositoryDefinition
 import com.rundeck.verb.repository.VerbArtifactRepository
-import com.rundeck.verb.util.TempFileProvider
 import groovy.transform.PackageScope
-import org.rundeck.storage.api.Tree
 import org.rundeck.storage.data.DataUtil
 
 class StorageTreeVerbArtifactRepository implements VerbArtifactRepository {
     static final String ARTIFACT_BASE = "artifacts/"
     static final String BINARY_BASE = "binary/"
-    Tree<ResourceMeta> storageTree
+    @PackageScope
+    StorageTree storageTree
     RepositoryDefinition repositoryDefinition
     private final ManifestService manifestService
     private final RepositoryEventEmitter eventEmitter
     private StorageTreeManifestCreator manifestCreator
+    static final ResourceFactory resourceFactory = new ResourceFactory()
+    private ManifestSource manifestSource
 
-    StorageTreeVerbArtifactRepository(Tree<ResourceMeta> storageTree, RepositoryDefinition repositoryDefinition, ManifestService manifestService, RepositoryEventEmitter eventEmitter) {
-        this(storageTree,repositoryDefinition,manifestService)
+    StorageTreeVerbArtifactRepository(StorageTree storageTree, RepositoryDefinition repositoryDefinition, RepositoryEventEmitter eventEmitter) {
+        this(storageTree,repositoryDefinition)
         this.eventEmitter = eventEmitter
 
     }
 
-    StorageTreeVerbArtifactRepository(Tree<ResourceMeta> storageTree, RepositoryDefinition repositoryDefinition, ManifestService manifestService) {
-        this.manifestService = manifestService
+    StorageTreeVerbArtifactRepository(StorageTree storageTree, RepositoryDefinition repositoryDefinition) {
+        if(!storageTree) throw new Exception("Unable to initialize storage tree repository. No storage tree provided.")
+        if(!repositoryDefinition.configProperties.manifestPath) throw new Exception("Path to manifest in storage tree must be provided by setting configProperties.manifestPath in repository definition.")
         this.storageTree = storageTree
         this.repositoryDefinition = repositoryDefinition
+        this.manifestSource = new StorageTreeManifestSource(storageTree,this.repositoryDefinition.configProperties.manifestPath)
+        this.manifestService = new MemoryManifestService(manifestSource)
         manifestCreator = new StorageTreeManifestCreator(storageTree)
     }
 
@@ -76,7 +80,7 @@ class StorageTreeVerbArtifactRepository implements VerbArtifactRepository {
     InputStream getArtifactBinary(final String artifactId, final String version = null) {
         ManifestEntry entry = manifestService.getEntry(artifactId)
         String artifactVer = version ?: entry.currentVersion
-        String extension = ArtifactUtils.artifactTypeFromNice(entry.artifactType)
+        String extension = ArtifactUtils.artifactTypeFromNice(entry.artifactType).extension
         return storageTree.getResource(BINARY_BASE+ArtifactUtils.artifactBinaryFileName(artifactId, artifactVer, extension)).contents.inputStream
     }
 
@@ -97,16 +101,15 @@ class StorageTreeVerbArtifactRepository implements VerbArtifactRepository {
     @PackageScope
     ResponseBatch uploadArtifactMeta(final RundeckVerbArtifact artifact, final InputStream metaInputStream) {
         ResponseBatch response = new ResponseBatch()
-        String artifactPath = ARTIFACT_BASE + ArtifactUtils.artifactMetaFileName(artifact)
+        String artifactPath = ARTIFACT_BASE + artifact.getArtifactMetaFileName()
         Map meta = [:]
         try {
-            def resource = DataUtil.withStream(metaInputStream, meta, StorageUtil.factory())
+            def resource = DataUtil.withStream(metaInputStream, meta, resourceFactory)
             storageTree.createResource(artifactPath, resource)
 
             response.messages.add(new ResponseMessage(code:ResponseCodes.SUCCESS))
             //recreate manifest
             recreateAndSaveManifest()
-            manifestService.syncManifest()
             //emit event that repo was updated
             if(eventEmitter) {
                 eventEmitter.emit(new RepositoryUpdateEvent(repositoryDefinition.repositoryName,artifactId))
@@ -122,10 +125,10 @@ class StorageTreeVerbArtifactRepository implements VerbArtifactRepository {
     @PackageScope
     ResponseBatch uploadArtifactBinary(final RundeckVerbArtifact artifact, final InputStream artifactBinaryInputStream) {
         ResponseBatch response = new ResponseBatch()
-        String binaryPath = BINARY_BASE+ArtifactUtils.artifactBinaryFileName(artifact)
+        String binaryPath = BINARY_BASE+artifact.getArtifactBinaryFileName()
         Map meta = [:]
         try {
-            def resource = DataUtil.withStream(artifactBinaryInputStream, meta, StorageUtil.factory())
+            def resource = DataUtil.withStream(artifactBinaryInputStream, meta, resourceFactory)
             storageTree.createResource(binaryPath, resource)
 
             response.messages.add(new ResponseMessage(code:ResponseCodes.SUCCESS))
@@ -141,8 +144,10 @@ class StorageTreeVerbArtifactRepository implements VerbArtifactRepository {
         return manifestService
     }
 
+    @Override
     void recreateAndSaveManifest() {
-        //TODO: this assumes the URL used in the repo defn is a writable location.
-        ArtifactUtils.writeArtifactManifestToFile(manifestCreator.createManifest(),new File(repositoryDefinition.manifestLocation.toURI()).newOutputStream())
+        manifestSource.saveManifest(manifestCreator.createManifest())
+        manifestService.syncManifest()
     }
+
 }

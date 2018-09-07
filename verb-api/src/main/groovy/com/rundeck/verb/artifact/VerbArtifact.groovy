@@ -23,6 +23,8 @@ interface VerbArtifact {
     void setName(String name)
     String getDescription()
     void setDescription(String description)
+    String getOrganization()
+    void setOrganization(String organization)
     Long getReleaseDate()
     void setReleaseDate(Long releaseDate)
     ArtifactType getArtifactType()
@@ -53,4 +55,8 @@ interface VerbArtifact {
     void setWebLink(final String webLink)
     String getLogoLink()
     void setLogoLink(final String logoLink)
+
+    String getInstallationFileName()
+    String getArtifactMetaFileName()
+    String getArtifactBinaryFileName()
 }

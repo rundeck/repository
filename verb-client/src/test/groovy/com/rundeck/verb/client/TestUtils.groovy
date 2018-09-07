@@ -15,7 +15,6 @@
  */
 package com.rundeck.verb.client
 
-
 class TestUtils {
 
     static void buildGradle(File baseDir) {
@@ -23,13 +22,24 @@ class TestUtils {
         p.waitFor()
     }
 
-    static void copyToTestBinaryArtifactsResourceLocation(String fileSource) {
-        File source = new File(fileSource)
-        File destDir = new File(System.getProperty("user.dir")+"/src/test/resources/binary-artifacts")
-        File destFile = new File(destDir,source.name)
+    static void zipDir(final String dirToZip) {
+        File rootDir = new File(dirToZip)
+        def zipp = new  ProcessBuilder("zip","-r",rootDir.name+".zip", rootDir.name+"/").directory(rootDir.parentFile).start()
+        zipp.waitFor()
+    }
 
-        source.withInputStream {
-            destFile << it
+    static void setVersion(final String sartifactFile, final String newVersion) {
+        File artifactFile = new File(sartifactFile)
+        List<String> artifactLines = artifactFile.readLines()
+        artifactFile.withOutputStream { out ->
+            artifactLines.each { line ->
+                if(line.startsWith("Version:")) {
+                    out << "Version: '${newVersion}'\n"
+                } else {
+                    out << line + "\n"
+                }
+            }
         }
     }
+
 }

@@ -36,9 +36,10 @@ class JavaPluginTemplateGenerator implements ArtifactTypeTemplateGenerator {
         try {
             templateProperties["newPluginId"] = ArtifactUtils.archiveNameToId(artifactName)
             templateProperties["pluginName"] = artifactName
-            templateProperties["sanitizedPluginName"] = sanitzedPluginName(artifactName)
+            templateProperties["sanitizedPluginName"] = ArtifactUtils.sanitizedPluginName(artifactName)
             templateProperties["javaPluginClass"] = validJavaPluginClassFromName(artifactName)
             templateProperties["providedService"] = providedService
+            templateProperties["currentDate"] = new Date().format("MM/dd/yyyy")
             templateProperties["pluginLang"] = "java"
             String destDir = destinationDir + "/" + templateProperties.javaPluginClass
             File destDirFile = new File(destDir)
@@ -65,7 +66,6 @@ class JavaPluginTemplateGenerator implements ArtifactTypeTemplateGenerator {
                 if (!remainingPath.isEmpty()) {
                     new File(destDir, remainingPath).mkdirs()
                 }
-                //println TEMPLATE_BASE+fileName
                 File destFile = new File(destDir, remainingPath + "/" + fileName)
 
                 FileWriter fileOut = new FileWriter(destFile)
@@ -78,10 +78,6 @@ class JavaPluginTemplateGenerator implements ArtifactTypeTemplateGenerator {
             batch.addMessage(new ResponseMessage(code: ResponseCodes.TEMPLATE_GENERATION_FAILED, message: ex.message))
         }
         return batch
-    }
-
-    private def sanitzedPluginName(final String artifactName) {
-        return artifactName.replace(" ", "-").replaceAll("[^a-zA-Z]","").toLowerCase()
     }
 
     private def validJavaPluginClassFromName(final String artifactName) {
