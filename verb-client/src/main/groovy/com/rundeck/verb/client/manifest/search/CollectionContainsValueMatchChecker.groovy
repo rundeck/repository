@@ -22,6 +22,8 @@ class CollectionContainsValueMatchChecker implements MatchChecker<Collection<Str
 
     @Override
     boolean matches(final Collection<String> checkCollection, final Collection<String> searchValue) {
-        return searchValue.any { checkCollection.contains(it) }
+        if(!checkCollection) return false
+        def lowcheck = checkCollection.findAll{ it != null }.collect { it.toLowerCase() }
+        return searchValue.any { lowcheck.contains(it.toLowerCase()) }
     }
 }

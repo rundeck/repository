@@ -15,11 +15,11 @@
  */
 package com.rundeck.verb.client.manifest
 
-
+import com.dtolabs.rundeck.core.plugins.PluginUtils
 import com.google.common.io.Files
+import com.rundeck.plugin.template.FilesystemArtifactTemplateGenerator
+import com.rundeck.plugin.template.PluginType
 import com.rundeck.verb.client.TestUtils
-import com.rundeck.verb.client.generator.MetaTemplateGenerator
-import com.rundeck.verb.client.generator.ScriptPluginTemplateGenerator
 import com.rundeck.verb.client.util.ArtifactUtils
 import com.rundeck.verb.manifest.ArtifactManifest
 import com.rundeck.verb.manifest.ManifestEntry
@@ -32,17 +32,17 @@ class FilesystemManifestCreatorTest extends Specification {
         setup:
         File tempManifestDir = File.createTempDir()
         File tempScriptDir = File.createTempDir()
-        ScriptPluginTemplateGenerator sgen = new ScriptPluginTemplateGenerator()
-        String artifactId = ArtifactUtils.archiveNameToId("Script Plugin Multiver")
-        sgen.createTemplate("Script Plugin Multiver","NodeExecutor",tempScriptDir.absolutePath)
+        FilesystemArtifactTemplateGenerator generator = new FilesystemArtifactTemplateGenerator()
+        String artifactId = PluginUtils.generateShaIdFromName("Script Plugin Multiver")
+        generator.generate("Script Plugin Multiver", PluginType.script, "NodeExecutor", tempScriptDir.absolutePath)
         TestUtils.zipDir(tempScriptDir.absolutePath+"/script-plugin-multiver")
-        Files.move(new File(tempScriptDir,"script-plugin-multiver.zip"),new File(tempManifestDir,"${artifactId}-0.1.zip"))
+        Files.move(new File(tempScriptDir,"script-plugin-multiver.zip"),new File(tempManifestDir,"${artifactId}-1.0.0.zip"))
         Thread.sleep(1000)
-        TestUtils.setVersion(tempScriptDir.absolutePath+"/script-plugin-multiver/rundeck-verb-artifact.yaml","1.0")
+        TestUtils.setVersion(tempScriptDir.absolutePath+"/script-plugin-multiver/plugin.yaml","1.1")
         TestUtils.zipDir(tempScriptDir.absolutePath+"/script-plugin-multiver")
-        Files.move(new File(tempScriptDir,"script-plugin-multiver.zip"),new File(tempManifestDir,"${artifactId}-1.0.zip"))
-        MetaTemplateGenerator metaGen = new MetaTemplateGenerator()
-        metaGen.createTemplate("Other Artifact","WorkflowNodeStep",tempManifestDir.absolutePath)
+        Files.move(new File(tempScriptDir,"script-plugin-multiver.zip"),new File(tempManifestDir,"${artifactId}-1.1.zip"))
+        generator.generate("Other Artifact", PluginType.script, "WorkflowNodeStep", tempScriptDir.absolutePath)
+        Files.move(new File(tempScriptDir,"other-artifact/plugin.yaml"),new File(tempManifestDir,"plugin.yaml"))
 
 
         when:
@@ -52,8 +52,8 @@ class FilesystemManifestCreatorTest extends Specification {
 
         then:
         manifest.entries.size() == 2
-        multiVer.currentVersion == "1.0"
-        multiVer.oldVersions == ["0.1"]
+        multiVer.currentVersion == "1.1"
+        multiVer.oldVersions == ["1.0.0"]
 
 
     }

@@ -22,6 +22,7 @@ class StartsWithMatchChecker implements MatchChecker<String,String> {
 
     @Override
     boolean matches(final String checkValue, final String searchValue) {
-        return checkValue.toUpperCase().startsWith(searchValue.toUpperCase())
+        if(!checkValue) return false
+        return checkValue.toLowerCase().startsWith(searchValue.toLowerCase())
     }
 }

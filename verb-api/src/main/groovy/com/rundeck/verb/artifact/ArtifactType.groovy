@@ -17,17 +17,6 @@ package com.rundeck.verb.artifact
 
 
 enum ArtifactType {
-    META {
-        @Override
-        ArtifactGroup getGroup() {
-            return ArtifactGroup.META
-        }
-
-        @Override
-        String getExtension() {
-            return "yaml"
-        }
-    },
     JAVA_PLUGIN {
         @Override
         ArtifactGroup getGroup() {
@@ -39,14 +28,15 @@ enum ArtifactType {
             return "jar"
         }
     },
-    UI_PLUGIN {
+    GROOVY_PLUGIN {
         @Override
         ArtifactGroup getGroup() {
             return ArtifactGroup.PLUGIN
         }
+
         @Override
         String getExtension() {
-            return "zip"
+            return "groovy"
         }
     },
     SCRIPT_PLUGIN {

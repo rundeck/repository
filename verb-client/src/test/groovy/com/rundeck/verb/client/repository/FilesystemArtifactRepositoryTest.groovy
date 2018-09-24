@@ -15,11 +15,13 @@
  */
 package com.rundeck.verb.client.repository
 
+import com.dtolabs.rundeck.core.plugins.PluginUtils
 import com.google.common.io.Files
+import com.rundeck.plugin.template.FilesystemArtifactTemplateGenerator
+import com.rundeck.plugin.template.PluginType
 import com.rundeck.verb.Constants
 import com.rundeck.verb.ResponseBatch
-import com.rundeck.verb.artifact.ArtifactType
-import com.rundeck.verb.client.RundeckVerbClient
+import com.rundeck.verb.artifact.VerbArtifact
 import com.rundeck.verb.client.TestUtils
 import com.rundeck.verb.client.util.ArtifactUtils
 import com.rundeck.verb.repository.RepositoryDefinition
@@ -38,15 +40,16 @@ class FilesystemArtifactRepositoryTest extends Specification {
     @Shared
     File buildDir
     @Shared
-    String builtNotifierPath = "Notifier/build/libs/Notifier-0.1.0-SNAPSHOT.jar" //assumes buildDir directory
+    String builtNotifierPath = "Notifier/build/libs/Notifier-0.1.0.jar" //assumes buildDir directory
     @Shared
     FilesystemArtifactRepository repo
     @Shared
-    RundeckVerbClient client
+    FilesystemArtifactTemplateGenerator generator
 
     def setupSpec() {
         buildDir = File.createTempDir()
         repoBase = File.createTempDir()
+        println repoBase.absolutePath
         repoManifest = new File(repoBase, "manifest.json")
         repoManifest.createNewFile()
         repoManifest << "{}"
@@ -58,14 +61,15 @@ class FilesystemArtifactRepositoryTest extends Specification {
         repoDef.owner = RepositoryOwner.PRIVATE
         repo = new FilesystemArtifactRepository(repoDef)
         repo.manifestService.syncManifest()
-        client = new RundeckVerbClient()
-        client.createArtifactTemplate("Notifier", ArtifactType.JAVA_PLUGIN, "Notification", buildDir.absolutePath)
+        generator = new FilesystemArtifactTemplateGenerator()
+        generator.generate("Notifier", PluginType.java, "Notification", buildDir.absolutePath)
         TestUtils.buildGradle(new File(buildDir, "Notifier"))
     }
 
-    def "UploadArtifactMeta"() {
+    def "SaveArtifactMetaToRepo"() {
         when:
-        ResponseBatch rbatch = repo.uploadArtifact(getClass().getClassLoader().getResourceAsStream("rundeck-verb-artifact.yaml"))
+        VerbArtifact artifact = ArtifactUtils.createArtifactFromYamlStream(getClass().getClassLoader().getResourceAsStream("rundeck-verb-artifact.yaml"))
+        ResponseBatch rbatch = repo.saveNewArtifact(artifact)
 
         then:
         rbatch.batchSucceeded()
@@ -78,8 +82,8 @@ class FilesystemArtifactRepositoryTest extends Specification {
 
         then:
         rbatch.batchSucceeded()
-        new File(repoBase,"artifacts/882ddccbcdd9-0.1.yaml").exists()
-        new File(repoBase,"binary/882ddccbcdd9-0.1.jar").exists()
+        new File(repoBase,"artifacts/882ddccbcdd9-0.1.0.yaml").exists()
+        new File(repoBase,"binary/882ddccbcdd9-0.1.0.jar").exists()
     }
 
     def "GetArtifact"() {
@@ -96,10 +100,11 @@ class FilesystemArtifactRepositoryTest extends Specification {
     def "RefreshAndSaveManifest"() {
         when:
         repo.manifestService.listArtifacts().size() == 2
-        String manualPlacementPluginId = ArtifactUtils.archiveNameToId("ManualManifestTester")
-        client.createArtifactTemplate("ManualManifestTester",ArtifactType.META,"NodeExecutor",buildDir.absolutePath)
+        String pluginName = "ManualManifestTester"
+        String manualPlacementPluginId = PluginUtils.generateShaIdFromName(pluginName)
+        generator.generate(pluginName, PluginType.script, "NodeExecutor", buildDir.absolutePath)
         Files.copy(
-                new File(buildDir, "manualmanifesttester/${Constants.ARTIFACT_META_FILE_NAME}"),
+                new File(buildDir, "${pluginName.toLowerCase()}/${Constants.ARTIFACT_META_FILE_NAME}"),
                 new File(repoBase, "artifacts/${manualPlacementPluginId}-0.1.yaml")
         )
         repo.recreateAndSaveManifest()

@@ -23,9 +23,19 @@ import com.rundeck.verb.manifest.search.ManifestSearchResult
 
 interface VerbClient {
 
-    ResponseBatch createArtifactTemplate(String artifactName, ArtifactType type, String serviceType, String destinationDir)
+    /**
+     * Developers who only want to provide a link to their binary need a way to add an artifact information
+     * to the repository. Artifact data is immutable so a new file will always be saved to the repository.
+     * An error will be returned to the developer if an artifact with the id and version already exists.
+     *
+     * @param repositoryName
+     * @param artifactBinaryStream
+     * @return
+     */
+    ResponseBatch saveNewArtifact(String repositoryName, VerbArtifact verbArtifact)
     /**
      * Upload a new artifact to a repository
+     * An error will be returned to the developer if an artifact with the id and version already exists.
      *
      * @param repositoryName
      * @param artifactBinaryStream

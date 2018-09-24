@@ -13,11 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.rundeck.verb.client.generator
+package com.rundeck.verb.client.repository
 
-import com.rundeck.verb.ResponseBatch
+import spock.lang.Specification
 
 
-interface ArtifactTypeTemplateGenerator {
-    ResponseBatch createTemplate(String artifactName, String providedService, String destinationDir)
+class StorageTreeVerbArtifactRepositoryTest extends Specification {
+    def "GetArtifact"() {
+    }
+
+    def "GetArtifactBinary"() {
+    }
+
+    def "UploadArtifact"() {
+    }
+
+    def "SaveNewArtifact"() {
+
+    }
 }

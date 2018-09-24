@@ -15,10 +15,25 @@
  */
 package com.rundeck.verb.client.repository
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.rundeck.verb.Constants
 import com.rundeck.verb.ResponseBatch
 import com.rundeck.verb.ResponseCodes
+import com.rundeck.verb.artifact.ArtifactType
+import com.rundeck.verb.artifact.SupportLevel
+import com.rundeck.verb.artifact.VerbArtifact
+import com.rundeck.verb.client.TestArtifactRepository
+import com.rundeck.verb.client.TestUtils
+import com.rundeck.verb.client.manifest.MemoryManifestService
+import com.rundeck.verb.client.manifest.MemoryManifestSource
+import com.rundeck.verb.client.manifest.search.ManifestSearchImpl
+import com.rundeck.verb.client.manifest.search.StringSearchTerm
+import com.rundeck.verb.manifest.ArtifactManifest
+import com.rundeck.verb.manifest.ManifestEntry
+import com.rundeck.verb.manifest.search.ManifestSearch
+import com.rundeck.verb.manifest.search.ManifestSearchResult
 import com.rundeck.verb.repository.RepositoryDefinition
+import com.rundeck.verb.repository.RepositoryManager
 import com.rundeck.verb.repository.RepositoryOwner
 import com.rundeck.verb.repository.RepositoryType
 import spock.lang.Specification
@@ -79,6 +94,24 @@ class RundeckRepositoryManagerTest extends Specification {
         then:
         Exception ex = thrown()
         ex.message == "Repository invalid does not exist."
+    }
+
+    def "Search repositories"() {
+        when:
+        TestRundeckRepositoryManager manager = new TestRundeckRepositoryManager()
+        def results = manager.searchRepositories(new ManifestSearchImpl(terms: [new StringSearchTerm(attributeName: "name", searchValue: "Git Plugin")]))
+
+        then:
+        results.size() == 1
+
+    }
+
+    class TestRundeckRepositoryManager extends RundeckRepositoryManager {
+
+        TestRundeckRepositoryManager() {
+            repositories["private"] = new TestArtifactRepository(new MemoryManifestService(new MemoryManifestSource(manifest:TestUtils.createTestManifest())),new RepositoryDefinition(repositoryName: "private"))
+        }
+
     }
 
 }

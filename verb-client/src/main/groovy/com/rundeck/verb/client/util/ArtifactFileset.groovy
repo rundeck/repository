@@ -20,11 +20,5 @@ import com.rundeck.verb.client.artifact.RundeckVerbArtifact
 
 class ArtifactFileset {
     File artifactBinary
-    File artifactMeta
     RundeckVerbArtifact artifact
-
-    boolean hasBinary() {
-        return artifactBinary != null
-    }
-
 }

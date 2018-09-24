@@ -11,3 +11,4 @@ verb-cli-test-harness/build/
 .DS_Store
 verb-cli/verb-cli/
 verb-cli/build/
+verb-cli/out/

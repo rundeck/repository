@@ -20,23 +20,19 @@ import com.rundeck.verb.ResponseBatch
 import com.rundeck.verb.ResponseCodes
 import com.rundeck.verb.ResponseMessage
 import com.rundeck.verb.artifact.ArtifactInstaller
-import com.rundeck.verb.artifact.ArtifactType
 import com.rundeck.verb.artifact.VerbArtifact
-import com.rundeck.verb.client.generator.FilesystemArtifactTemplateGenerator
 import com.rundeck.verb.manifest.search.ManifestSearch
 import com.rundeck.verb.manifest.search.ManifestSearchResult
 import com.rundeck.verb.repository.RepositoryManager
-import com.rundeck.verb.template.ArtifactTemplateGenerator
 
 class RundeckVerbClient implements VerbClient {
 
-    ArtifactTemplateGenerator artifactTemplateGenerator = new FilesystemArtifactTemplateGenerator()
     RepositoryManager repositoryManager
     ArtifactInstaller artifactInstaller
 
     @Override
-    ResponseBatch createArtifactTemplate(final String artifactName, final ArtifactType type, String serviceType, final String destinationDir) {
-        artifactTemplateGenerator.generate(artifactName,type,serviceType,destinationDir)
+    ResponseBatch saveNewArtifact(final String repositoryName, final VerbArtifact verbArtifact) {
+        return repositoryManager.saveNewArtifact(repositoryName,verbArtifact)
     }
 
     @Override

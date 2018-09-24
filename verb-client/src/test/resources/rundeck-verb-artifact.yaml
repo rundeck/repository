@@ -15,5 +15,3 @@ ProvidesServices:
 ThirdPartyDependencies : None
 SourceLink: https://github.com/youraccount/mygreatplugin
 #BinaryLink: https://bintray.com/rundecknetwork/mygreatplugin
-WebLink: https://mydomain.com/mygreatplugin
-LogoLink: https://mydomain.com/cdn/mygreatplugin-logo.png

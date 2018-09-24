@@ -30,4 +30,5 @@ class ResponseCodes {
     static final String INSTALL_FAILED                          = "artifact.install.failed"
 
     static final String SERVER_ERROR                            = "server.error"
+    static final String ARTIFACT_SIGNING_FAILED                 = "artifact.signing.failed"
 }

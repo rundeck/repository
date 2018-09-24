@@ -37,6 +37,8 @@ interface VerbArtifact {
     void setVersion(final String version)
     String getRundeckCompatibility()
     void setRundeckCompatibility(final String rundeckCompatibility)
+    String getTargetHostCompatibility()
+    void setTargetHostCompatibility(final String targetHostCompatibility)
     SupportLevel getSupport()
     void setSupport(final SupportLevel support)
     String getLicense()
@@ -51,10 +53,8 @@ interface VerbArtifact {
     void setSourceLink(final String sourceLink)
     String getBinaryLink()
     void setBinaryLink(final String binaryLink)
-    String getWebLink()
-    void setWebLink(final String webLink)
-    String getLogoLink()
-    void setLogoLink(final String logoLink)
+
+    boolean validate()
 
     String getInstallationFileName()
     String getArtifactMetaFileName()

@@ -17,6 +17,8 @@ package com.rundeck.verb.client.repository
 
 import com.dtolabs.rundeck.core.storage.StorageTree
 import com.rundeck.verb.ResponseBatch
+import com.rundeck.verb.ResponseCodes
+import com.rundeck.verb.ResponseMessage
 import com.rundeck.verb.artifact.VerbArtifact
 import com.rundeck.verb.client.artifact.RundeckVerbArtifact
 import com.rundeck.verb.client.signing.GpgPassphraseProvider
@@ -24,6 +26,7 @@ import com.rundeck.verb.client.signing.GpgTools
 import com.rundeck.verb.client.util.ArtifactFileset
 import com.rundeck.verb.client.util.ArtifactUtils
 import com.rundeck.verb.client.util.ResourceFactory
+import com.rundeck.verb.client.validators.BinaryValidator
 import com.rundeck.verb.events.RepositoryEventEmitter
 import com.rundeck.verb.manifest.ManifestEntry
 import com.rundeck.verb.repository.RepositoryDefinition
@@ -90,7 +93,7 @@ class GpgSignedStorageTreeVerbArtifactRepository extends StorageTreeVerbArtifact
 
         ResponseBatch responseBatch = new ResponseBatch()
         ArtifactFileset artifactFileset = ArtifactUtils.constructArtifactFileset(artifactInputStream)
-        //responseBatch.messages.addAll(validateArtifactBinary(uploadTmp))
+        responseBatch.messages.addAll(BinaryValidator.validate(artifactFileset.artifact.artifactType, uploadTmp).messages)
         if(!responseBatch.batchSucceeded()) return responseBatch
 
         responseBatch.messages.addAll(uploadArtifactMeta(artifactFileset.artifact, artifactFileset.artifactMeta.newInputStream()).messages)
@@ -108,22 +111,23 @@ class GpgSignedStorageTreeVerbArtifactRepository extends StorageTreeVerbArtifact
     }
 
     @Override
-    ResponseBatch uploadArtifactMeta(final RundeckVerbArtifact artifact, final InputStream metaInputStream) {
-        InputStream artifactStream
+    ResponseBatch saveNewArtifact(final VerbArtifact artifact) {
+        ResponseBatch batch = new ResponseBatch()
+        try {
         if(gpgPrivateKey) {
             ByteArrayOutputStream bout = new ByteArrayOutputStream()
-            bout << metaInputStream
+            ArtifactUtils.saveArtifactToOutputStream(artifact,bout)
             File metaSig = File.createTempFile("meta","sig")
             GpgTools.signDetached(false,gpgPrivateKey.newInputStream(),new ByteArrayInputStream(bout.toByteArray()),metaSig.newOutputStream(),passphraseProvider)
             String sigPath = ARTIFACT_BASE+artifact.getArtifactMetaFileName()+".sig"
             def sigResource = DataUtil.withStream(metaSig.newInputStream(), [:], resourceFactory)
             storageTree.createResource(sigPath,sigResource)
-            artifactStream = new ByteArrayInputStream(bout.toByteArray())
-        } else {
-            artifactStream = metaInputStream
         }
-
-        return super.uploadArtifactMeta(artifactId,artifactStream)
+        } catch(Exception ex) {
+          batch.messages.add(new ResponseMessage(code: ResponseCodes.ARTIFACT_SIGNING_FAILED, message: ex.message))
+        }
+        batch.messages.addAll(super.saveNewArtifact(artifact))
+        return batch
     }
 
 }

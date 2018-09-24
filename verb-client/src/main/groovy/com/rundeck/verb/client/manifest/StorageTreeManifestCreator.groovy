@@ -36,7 +36,7 @@ class StorageTreeManifestCreator extends AbstractManifestCreator {
     ArtifactManifest createManifest() {
         ArtifactManifest manifest = new ArtifactManifest()
         repoTree.listDirectoryResources("artifacts").each { resource ->
-            RundeckVerbArtifact artifact = ArtifactUtils.createArtifactFromStream(resource.contents.inputStream)
+            RundeckVerbArtifact artifact = ArtifactUtils.createArtifactFromYamlStream(resource.contents.inputStream)
             ManifestEntry entry = artifact.createManifestEntry()
             entry.lastRelease = resource.contents.creationTime.time
             addEntryToManifest(manifest,entry)

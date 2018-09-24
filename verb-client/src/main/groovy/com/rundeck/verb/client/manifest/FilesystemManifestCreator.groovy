@@ -15,17 +15,21 @@
  */
 package com.rundeck.verb.client.manifest
 
+import com.dtolabs.rundeck.core.plugins.PluginUtils
 import com.rundeck.verb.artifact.ArtifactType
 import com.rundeck.verb.client.artifact.RundeckVerbArtifact
 import com.rundeck.verb.client.util.ArtifactUtils
 import com.rundeck.verb.manifest.ArtifactManifest
 import com.rundeck.verb.manifest.ManifestCreator
 import com.rundeck.verb.manifest.ManifestEntry
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 import java.util.zip.ZipFile
 
 
 class FilesystemManifestCreator extends AbstractManifestCreator {
+    private static final Logger logger = LoggerFactory.getLogger(this)
 
     private final String artifactScanDir
 
@@ -41,17 +45,26 @@ class FilesystemManifestCreator extends AbstractManifestCreator {
         }
         ArtifactManifest manifest = new ArtifactManifest()
         scanDir.traverse(type: groovy.io.FileType.FILES,nameFilter: ~/.*[\.jar|\.zip|\.yaml]$/) { file ->
-            ArtifactType guessed = guessArtifactType(file)
-            InputStream metaInStream
-            if(guessed == ArtifactType.META) {
-                metaInStream = file.newInputStream()
-            } else {
-                metaInStream = ArtifactUtils.extractArtifactMetaFromZip(new ZipFile(file))
+            RundeckVerbArtifact artifact = null
+            try {
+                if (file.name.endsWith(".yaml")) {
+                    try {
+                        artifact = ArtifactUtils.createArtifactFromYamlStream(file.newInputStream())
+                    } catch (Exception ex) {
+                        ex.printStackTrace()
+                        artifact = ArtifactUtils.createArtifactFromRundeckPluginYaml(file.newInputStream())
+                    }
+                    if(!artifact.id) artifact.id = PluginUtils.generateShaIdFromName(artifact.name)
+                    if(!artifact.artifactType) artifact.artifactType = ArtifactType.SCRIPT_PLUGIN
+                } else {
+                    artifact = ArtifactUtils.getMetaFromUploadedFile(file)
+                }
+                ManifestEntry entry = artifact.createManifestEntry()
+                entry.lastRelease = file.lastModified()
+                addEntryToManifest(manifest, entry)
+            } catch(Exception ex) {
+                logger.error("Unable to add entry for file ${file.absolutePath}",ex)
             }
-            RundeckVerbArtifact artifact = ArtifactUtils.createArtifactFromStream(metaInStream)
-            ManifestEntry entry = artifact.createManifestEntry()
-            entry.lastRelease = file.lastModified()
-            addEntryToManifest(manifest,entry)
         }
         return manifest
     }
@@ -59,6 +72,6 @@ class FilesystemManifestCreator extends AbstractManifestCreator {
     private ArtifactType guessArtifactType(final File file) {
         if(file.name.endsWith("jar")) return ArtifactType.JAVA_PLUGIN
         if(file.name.endsWith("zip")) return ArtifactType.SCRIPT_PLUGIN
-        return ArtifactType.META
+        return ArtifactType.SCRIPT_PLUGIN
     }
 }

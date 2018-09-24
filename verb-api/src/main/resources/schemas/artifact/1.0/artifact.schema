@@ -36,7 +36,11 @@
         },
         "ArtifactType": {
             "description":"The artifact type",
-            "enum": ["JAVA_PLUGIN","UI_PLUGIN","SCRIPT_PLUGIN","java-plugin","ui-plugin","script-plugin","meta"]
+            "enum": ["JAVA_PLUGIN","SCRIPT_PLUGIN","java-plugin","script-plugin"]
+        },
+        "License": {
+            "description":"Artifact license",
+            type:"string"
         },
         "Support": {
             "description":"Support level offered for the artifact",
@@ -76,15 +80,7 @@
         "BinaryLink": {
             "description":"Link to the binary download",
             "type":"string"
-        },
-        "WebLink" : {
-            "description":"Link to a website giving details about the artifact",
-            "type":"string"
-        },
-        "LogoLink" : {
-            "description":"Link to a logo for the artifact",
-            "type":"string"
         }
     },
-    "required": ["Name","Author","AuthorId","ArtifactType","Version","Support","Id","Tags","ProvidesServices","RundeckCompatibility"]
+    "required": ["Name","Author","AuthorId","ArtifactType","Version","Id","Tags","ProvidesServices","RundeckCompatibility"]
 }

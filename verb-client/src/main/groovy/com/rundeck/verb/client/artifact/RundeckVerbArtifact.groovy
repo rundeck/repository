@@ -15,6 +15,7 @@
  */
 package com.rundeck.verb.client.artifact
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.rundeck.verb.artifact.ArtifactType
@@ -42,6 +43,7 @@ class RundeckVerbArtifact implements VerbArtifact {
     String authorId
     String version
     String rundeckCompatibility
+    String targetHostCompatibility
     @JsonSerialize(using= SupportLevelTypeSerializer)
     @JsonDeserialize(using= SupportLevelTypeDeserializer)
     SupportLevel support
@@ -51,8 +53,6 @@ class RundeckVerbArtifact implements VerbArtifact {
     String thirdPartyDependencies
     String sourceLink
     String binaryLink
-    String webLink
-    String logoLink
 
     ManifestEntry createManifestEntry() {
         ManifestEntry entry = new ManifestEntry()
@@ -65,6 +65,7 @@ class RundeckVerbArtifact implements VerbArtifact {
         entry.artifactType = ArtifactUtils.niceArtifactTypeName(artifactType)
         entry.currentVersion = version
         entry.rundeckCompatibility = rundeckCompatibility
+        entry.targetHostCompatibility = targetHostCompatibility
         entry.providesServices = providesServices
         entry.tags = tags
         entry.lastRelease = releaseDate
@@ -73,16 +74,27 @@ class RundeckVerbArtifact implements VerbArtifact {
     }
 
     @Override
+    boolean validate() {
+        if(!id) throw new ArtifactValidationException("Id is not set.")
+        if(!name) throw new ArtifactValidationException("Name is required.")
+        if(!artifactType) throw new ArtifactValidationException("Artifact type is required.")
+        if(!rundeckCompatibility) throw new ArtifactValidationException("Rundeck compatibility version is required.")
+    }
+
+    @Override
+    @JsonIgnore
     String getInstallationFileName() {
         return ArtifactUtils.sanitizedPluginName(name).toLowerCase()+ "."+ artifactType.extension
     }
 
     @Override
+    @JsonIgnore
     String getArtifactMetaFileName() {
         return ArtifactUtils.artifactMetaFileName(id,version)
     }
 
     @Override
+    @JsonIgnore
     String getArtifactBinaryFileName() {
         return ArtifactUtils.artifactBinaryFileName(id,version,artifactType.extension)
     }

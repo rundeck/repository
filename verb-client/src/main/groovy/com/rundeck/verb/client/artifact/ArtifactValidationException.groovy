@@ -13,11 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.rundeck.verb.validator
-
-import com.rundeck.verb.ResponseBatch
+package com.rundeck.verb.client.artifact
 
 
-interface ArtifactMetaValidator {
-    ResponseBatch validate(InputStream artifactStreamToValidate)
+class ArtifactValidationException extends Exception {
+
+
+    ArtifactValidationException() {
+    }
+
+    ArtifactValidationException(final String msg) {
+        super(msg)
+    }
+
+    ArtifactValidationException(final String msg, final Throwable throwable) {
+        super(msg, throwable)
+    }
 }

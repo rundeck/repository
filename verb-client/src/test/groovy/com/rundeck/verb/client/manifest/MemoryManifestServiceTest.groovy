@@ -80,31 +80,4 @@ class MemoryManifestServiceTest extends Specification {
         results2.any { it.name == "Bash It"}
         results2.any { it.name == "Script Plugin"}
     }
-
-    private ManifestEntry createEntry(String name, Map artifactProps = [:] ) {
-        Map props = [:]
-        props.id = UUID.randomUUID().toString()
-        props.name = name
-        props.description = "Rundeck plugin"
-        props.artifactType = ArtifactType.JAVA_PLUGIN
-        props.author = "rundeck"
-        props.version = "1.0"
-        props.support = SupportLevel.RUNDECK
-        props.tags = ["rundeck","orignal"]
-        props.putAll(artifactProps)
-        return new ManifestEntry(props)
-    }
-
-    private void recreateTestData() {
-        ArtifactManifest manifest = new ArtifactManifest()
-        manifest.entries.add(createEntry("Script Plugin",[tags:["rundeck","bash","script"]]))
-        manifest.entries.add(createEntry("Copy File Plugin"))
-        manifest.entries.add(createEntry("Git Plugin"))
-        manifest.entries.add(createEntry("Super Notifier",["description":"10 different methods to notify job status","author":"Know Itall","support":"COMMUNITY","tags":["notification"]]))
-        manifest.entries.add(createEntry("Log Enhancer",["description":"Put anything in your output logs","author":"Log Master","support":"COMMUNITY","tags":["log writer"]]))
-        manifest.entries.add(createEntry("Humorous",["description":"Inject today's xkcd commic into your project page","author":"Funny Man","support":"COMMUNITY","artifactType":"UI_PLUGIN","tags":["ui"]]))
-        manifest.entries.add(createEntry("Bash It",["description":"Enhance your job with bash","author":"Bash Commander","support":"COMMUNITY","artifactType":"ZIP_PLUGIN","tags":["bash"]]))
-        manifest.entries.add(createEntry("Javascript Runner",["description":"Write javascript to do your work","author":"JS Master","support":"COMMUNITY","artifactType":"ZIP_PLUGIN","tags":["js","script"]]))
-        new ObjectMapper().writeValue(new File(System.getProperty("user.dir")+"/src/test/resources/memory-manifest-service-test.manifest"),manifest)
-    }
 }

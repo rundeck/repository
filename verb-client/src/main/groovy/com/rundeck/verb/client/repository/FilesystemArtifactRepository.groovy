@@ -25,6 +25,7 @@ import com.rundeck.verb.client.manifest.FilesystemManifestSource
 import com.rundeck.verb.client.manifest.MemoryManifestService
 import com.rundeck.verb.client.util.ArtifactFileset
 import com.rundeck.verb.client.util.ArtifactUtils
+import com.rundeck.verb.client.validators.BinaryValidator
 import com.rundeck.verb.manifest.ManifestEntry
 import com.rundeck.verb.manifest.ManifestService
 import com.rundeck.verb.manifest.ManifestSource
@@ -69,7 +70,7 @@ class FilesystemArtifactRepository implements VerbArtifactRepository {
     @Override
     VerbArtifact getArtifact(final String artifactId, final String version = null) {
         String artifactVer = version ?: manifestService.getEntry(artifactId).currentVersion
-        return ArtifactUtils.createArtifactFromStream(new File(repoBase,ARTIFACT_BASE+ArtifactUtils.artifactMetaFileName(artifactId,artifactVer)).newInputStream())
+        return ArtifactUtils.createArtifactFromYamlStream(new File(repoBase,ARTIFACT_BASE+ArtifactUtils.artifactMetaFileName(artifactId,artifactVer)).newInputStream())
     }
 
     @Override
@@ -81,30 +82,30 @@ class FilesystemArtifactRepository implements VerbArtifactRepository {
     }
 
     @Override
-    ResponseBatch uploadArtifact(final InputStream artifactInputStream) {
-        ResponseBatch responseBatch = new ResponseBatch()
-        ArtifactFileset artifactFileset = ArtifactUtils.constructArtifactFileset(artifactInputStream)
-        //responseBatch.messages.addAll(validateArtifactBinary(uploadTmp))
-        if(!responseBatch.batchSucceeded()) return responseBatch
-
-        responseBatch.messages.addAll(uploadArtifactMeta(artifactFileset.artifact, artifactFileset.artifactMeta.newInputStream()).messages)
-        if(artifactFileset.hasBinary()) {
-            responseBatch.messages.addAll(uploadArtifactBinary(artifactFileset.artifact, artifactFileset.artifactBinary.newInputStream()).messages)
-        }
-        responseBatch
-    }
-
-    ResponseBatch uploadArtifactMeta(final RundeckVerbArtifact artifact, final InputStream inputStream) {
+    ResponseBatch saveNewArtifact(final VerbArtifact artifact) {
         ResponseBatch rbatch = new ResponseBatch()
         try {
             File saveFile = new File(repoBase,ARTIFACT_BASE+artifact.artifactMetaFileName)
-            saveFile << inputStream
+            ArtifactUtils.saveArtifactToOutputStream(artifact, saveFile.newOutputStream())
             recreateAndSaveManifest()
             rbatch.addMessage(ResponseMessage.success())
         } catch(Exception ex) {
             rbatch.addMessage(new ResponseMessage(code: ResponseCodes.META_UPLOAD_FAILED,message:ex.message))
         }
         return rbatch
+    }
+
+    @Override
+    ResponseBatch uploadArtifact(final InputStream artifactInputStream) {
+        ResponseBatch responseBatch = new ResponseBatch()
+        ArtifactFileset artifactFileset = ArtifactUtils.constructArtifactFileset(artifactInputStream)
+        responseBatch.messages.addAll(BinaryValidator.validate(artifactFileset.artifact.artifactType, artifactFileset.artifactBinary).messages)
+        if(!responseBatch.batchSucceeded()) return responseBatch
+
+        responseBatch.messages.addAll(saveNewArtifact(artifactFileset.artifact).messages)
+        responseBatch.messages.addAll(uploadArtifactBinary(artifactFileset.artifact, artifactFileset.artifactBinary.newInputStream()).messages)
+
+        responseBatch
     }
 
     ResponseBatch uploadArtifactBinary(final RundeckVerbArtifact artifact, final InputStream inputStream) {

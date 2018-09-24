@@ -27,6 +27,7 @@ import com.rundeck.verb.client.manifest.StorageTreeManifestSource
 import com.rundeck.verb.client.util.ArtifactFileset
 import com.rundeck.verb.client.util.ArtifactUtils
 import com.rundeck.verb.client.util.ResourceFactory
+import com.rundeck.verb.client.validators.BinaryValidator
 import com.rundeck.verb.events.RepositoryEventEmitter
 import com.rundeck.verb.events.RepositoryUpdateEvent
 import com.rundeck.verb.manifest.ManifestEntry
@@ -73,7 +74,7 @@ class StorageTreeVerbArtifactRepository implements VerbArtifactRepository {
     @Override
     VerbArtifact getArtifact(final String artifactId, final String version = null) {
         String artifactVer = version ?: manifestService.getEntry(artifactId).currentVersion
-        ArtifactUtils.createArtifactFromStream(storageTree.getResource(ARTIFACT_BASE+ArtifactUtils.artifactMetaFileName(artifactId, artifactVer)).contents.inputStream)
+        ArtifactUtils.createArtifactFromYamlStream(storageTree.getResource(ARTIFACT_BASE+ArtifactUtils.artifactMetaFileName(artifactId, artifactVer)).contents.inputStream)
     }
 
     @Override
@@ -88,23 +89,23 @@ class StorageTreeVerbArtifactRepository implements VerbArtifactRepository {
     ResponseBatch uploadArtifact(final InputStream artifactInputStream) {
         ResponseBatch responseBatch = new ResponseBatch()
         ArtifactFileset artifactFileset = ArtifactUtils.constructArtifactFileset(artifactInputStream)
-        //responseBatch.messages.addAll(validateArtifactBinary(uploadTmp))
+        responseBatch.messages.addAll(BinaryValidator.validate(artifactFileset.artifact.artifactType,artifactFileset.artifactBinary).messages)
         if(!responseBatch.batchSucceeded()) return responseBatch
 
-        responseBatch.messages.addAll(uploadArtifactMeta(artifactFileset.artifact, artifactFileset.artifactMeta.newInputStream()).messages)
-        if(artifactFileset.hasBinary()) {
-            responseBatch.messages.addAll(uploadArtifactBinary(artifactFileset.artifact, artifactFileset.artifactBinary.newInputStream()).messages)
-        }
+        responseBatch.messages.addAll(saveNewArtifact(artifactFileset.artifact).messages)
+        responseBatch.messages.addAll(uploadArtifactBinary(artifactFileset.artifact, artifactFileset.artifactBinary.newInputStream()).messages)
         responseBatch
     }
 
-    @PackageScope
-    ResponseBatch uploadArtifactMeta(final RundeckVerbArtifact artifact, final InputStream metaInputStream) {
+    @Override
+    ResponseBatch saveNewArtifact(final VerbArtifact artifact) {
         ResponseBatch response = new ResponseBatch()
         String artifactPath = ARTIFACT_BASE + artifact.getArtifactMetaFileName()
         Map meta = [:]
         try {
-            def resource = DataUtil.withStream(metaInputStream, meta, resourceFactory)
+            ByteArrayOutputStream baos = new ByteArrayOutputStream()
+            ArtifactUtils.saveArtifactToOutputStream(artifact,baos)
+            def resource = DataUtil.withStream(new ByteArrayInputStream(baos.toByteArray()), meta, resourceFactory)
             storageTree.createResource(artifactPath, resource)
 
             response.messages.add(new ResponseMessage(code:ResponseCodes.SUCCESS))
@@ -149,5 +150,6 @@ class StorageTreeVerbArtifactRepository implements VerbArtifactRepository {
         manifestSource.saveManifest(manifestCreator.createManifest())
         manifestService.syncManifest()
     }
+
 
 }

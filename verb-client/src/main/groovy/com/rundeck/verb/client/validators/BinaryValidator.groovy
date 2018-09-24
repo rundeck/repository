@@ -13,22 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.rundeck.verb.client.artifact
+package com.rundeck.verb.client.validators
 
 import com.rundeck.verb.ResponseBatch
-import com.rundeck.verb.client.validators.YamlArtifactMetaValidator
-import spock.lang.Specification
+import com.rundeck.verb.artifact.ArtifactType
 
 
-class YamlArtifactMetaValidatorTest extends Specification {
-
-    def "Validate"() {
-        when:
-        YamlArtifactMetaValidator validator = new YamlArtifactMetaValidator()
-        InputStream metaStream = getClass().getClassLoader().getResourceAsStream("rundeck-verb-artifact.yaml")
-        ResponseBatch response = validator.validate(metaStream)
-
-        then:
-        response.batchSucceeded()
+class BinaryValidator {
+    static JarPluginArtifactValidator jarValidator = new JarPluginArtifactValidator()
+    static ScriptPluginArtifactValidator scriptValidator = new ScriptPluginArtifactValidator()
+    static ResponseBatch validate(ArtifactType type, File fileToValidate) {
+        if(type == ArtifactType.JAVA_PLUGIN) return jarValidator.validate(fileToValidate)
+        if(type == ArtifactType.SCRIPT_PLUGIN) return scriptValidator.validate(fileToValidate)
+        throw new Exception("No validator for type: ${type.name()}")
     }
 }

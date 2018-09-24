@@ -35,7 +35,7 @@ class RundeckRepositoryManager implements RepositoryManager {
 
     private ObjectMapper mapper = new ObjectMapper()
     private YAMLFactory yamlFactory = new YAMLFactory()
-    private Map<String, VerbArtifactRepository> repositories = [:]
+    protected Map<String, VerbArtifactRepository> repositories = [:]
     private RepositoryDefinitionList repositoryDefinitions
     private URL repositoryDefinitionDatasource
     private RepositoryFactory repositoryFactory
@@ -66,6 +66,12 @@ class RundeckRepositoryManager implements RepositoryManager {
     @Override
     List<String> listRepositories() {
         return repositories.keySet().toList()
+    }
+
+    @Override
+    ResponseBatch saveNewArtifact(final String repositoryName, final VerbArtifact verbArtifact) {
+        if(!repositories.containsKey(repositoryName)) return new ResponseBatch().withMessage(new ResponseMessage(code: ResponseCodes.REPO_DOESNT_EXIST,message:"Repository ${repositoryName} does not exist"))
+        return repositories[repositoryName].saveNewArtifact(verbArtifact)
     }
 
     @Override
@@ -122,6 +128,7 @@ class RundeckRepositoryManager implements RepositoryManager {
         repositories.values().each {
             ManifestSearchResult result = new ManifestSearchResult(repositoryName: it.repositoryDefinition.repositoryName)
             result.results = it.manifestService.searchArtifacts(search)
+            results.add(result)
         }
         return results
     }

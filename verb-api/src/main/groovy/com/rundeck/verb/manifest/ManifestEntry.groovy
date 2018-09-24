@@ -15,22 +15,43 @@
  */
 package com.rundeck.verb.manifest
 
+import com.rundeck.verb.manifest.search.Searchable
+
 class ManifestEntry {
     String id
+    @Searchable
     String name
+    @Searchable
     String author
+    @Searchable
     String description
+    @Searchable
     String organization
     String artifactType
+    @Searchable
     String support
+    @Searchable
     String currentVersion
+    @Searchable
     String rundeckCompatibility
+    @Searchable
+    String targetHostCompatibility
     String binaryLink
     Long lastRelease
+    @Searchable
     Collection<String> tags = []
+    @Searchable
     Collection<String> providesServices = []
     Collection<String> oldVersions = []
     Integer rating //1-5 stars
     Integer installs
     boolean installed
+
+    static List<String> searchableFieldList() {
+        def fieldList = []
+        ManifestEntry.getDeclaredFields().each {
+            if(it.getAnnotation(Searchable)) { fieldList.add(it.name)}
+        }
+        return fieldList.sort()
+    }
 }

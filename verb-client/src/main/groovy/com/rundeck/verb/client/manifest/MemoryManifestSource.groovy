@@ -13,12 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.rundeck.verb.client.util
+package com.rundeck.verb.client.manifest
 
-import spock.lang.Specification
-
-
-class ArtifactUtilsTest extends Specification {
+import com.rundeck.verb.manifest.ArtifactManifest
+import com.rundeck.verb.manifest.ManifestSource
 
 
+class MemoryManifestSource implements ManifestSource {
+
+    ArtifactManifest manifest = new ArtifactManifest()
+
+    @Override
+    ArtifactManifest getManifest() {
+        return manifest
+    }
+
+    @Override
+    void saveManifest(final ArtifactManifest manifest) {
+        this.manifest = manifest
+    }
 }

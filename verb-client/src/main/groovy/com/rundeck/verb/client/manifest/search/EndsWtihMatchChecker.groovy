@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.rundeck.verb.template
+package com.rundeck.verb.client.manifest.search
 
-import com.rundeck.verb.ResponseBatch
-import com.rundeck.verb.artifact.ArtifactType
+import com.rundeck.verb.manifest.search.MatchChecker
 
 
-interface ArtifactTemplateGenerator {
-    ResponseBatch generate(String artifactName, ArtifactType artifactType, String providedService, String destinationDir)
+class EndsWtihMatchChecker implements MatchChecker<String,String> {
+    @Override
+    boolean matches(final String checkValue, final String searchValue) {
+        if(!checkValue) return false
+        return checkValue.toLowerCase().endsWith(searchValue.toLowerCase())
+    }
 }

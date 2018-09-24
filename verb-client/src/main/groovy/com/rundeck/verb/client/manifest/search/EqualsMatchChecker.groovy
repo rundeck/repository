@@ -22,6 +22,7 @@ class EqualsMatchChecker implements MatchChecker<String,String> {
 
     @Override
     boolean matches(final String checkValue, final String searchValue) {
-        return checkValue == searchValue
+        if(!checkValue) return false
+        return checkValue.toLowerCase() == searchValue.toLowerCase()
     }
 }

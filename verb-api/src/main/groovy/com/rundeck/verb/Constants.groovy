@@ -19,7 +19,7 @@ package com.rundeck.verb
 class Constants {
     static final String RUNDECK_VERB_SCHEMA_ROOT        = "http://verb.rundeck.com/schemas/"
     static final String ARTIFACT_SCHEMA_FILE_NAME       = "artifact.schema"
-    static final String ARTIFACT_META_FILE_NAME         = "rundeck-verb-artifact.yaml"
+    static final String ARTIFACT_META_FILE_NAME         = "plugin.yaml"
     static final String ARTIFACT_META_SCHEMA_VERSION    = "1.0"
     static final String VERB_CLIENT_CONFIG_FILE         = System.getProperty("user.home")+"/.rundeck/rundeck-verb.properties"
 }

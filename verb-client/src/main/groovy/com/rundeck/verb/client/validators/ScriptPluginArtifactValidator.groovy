@@ -15,21 +15,31 @@
  */
 package com.rundeck.verb.client.validators
 
-import com.dtolabs.rundeck.core.plugins.JarPluginProviderLoader
+import com.dtolabs.rundeck.core.plugins.ScriptPluginScanner
 import com.rundeck.verb.ResponseBatch
 import com.rundeck.verb.ResponseCodes
 import com.rundeck.verb.ResponseMessage
+import com.rundeck.verb.client.util.ArtifactUtils
 import com.rundeck.verb.validator.ArtifactBinaryValidator
 
-class JarPluginArtifactValidator implements ArtifactBinaryValidator {
 
+class ScriptPluginArtifactValidator implements ArtifactBinaryValidator {
     @Override
-    ResponseBatch validate(final File artifactToValidate) {
+    ResponseBatch validate(final File binaryFile) {
+        //the file name is very important to the script loader,
+        // attempt to read the root dir from the zip and rename the file based on that name
+        File binFile
+        if(!binaryFile.name.endsWith(".zip")) {
+            binFile = ArtifactUtils.renameScriptFile(binaryFile)
+        } else {
+            binFile = binaryFile
+        }
+
         ResponseBatch response = new ResponseBatch()
-        if(JarPluginProviderLoader.isValidJarPlugin(artifactToValidate)) {
+        if(ScriptPluginScanner.validatePluginFile(binFile)) {
             response.addMessage(ResponseMessage.success())
         } else {
-            response.addMessage(new ResponseMessage(code: ResponseCodes.INVALID_BINARY,message:"Jar is not valid. Please check the logs for specific error messages"))
+            response.addMessage(new ResponseMessage(code: ResponseCodes.INVALID_BINARY, message:"Script plugin is not valid. Please check the logs for specific error messages"))
         }
         return response
     }
