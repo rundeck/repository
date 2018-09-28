@@ -80,4 +80,9 @@ interface VerbClient {
      */
     void refreshRepositoryManifest(String repositoryName)
 
+    /**
+     * List names of all repositories defined in the system
+     * @return
+     */
+    List<String> listRepositories()
 }
