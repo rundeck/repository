@@ -20,6 +20,7 @@ import com.rundeck.verb.ResponseCodes
 import com.rundeck.verb.ResponseMessage
 import com.rundeck.verb.artifact.VerbArtifact
 import com.rundeck.verb.client.artifact.RundeckVerbArtifact
+import com.rundeck.verb.client.manifest.HttpManifestSource
 import com.rundeck.verb.client.manifest.MemoryManifestService
 import com.rundeck.verb.client.util.ArtifactFileset
 import com.rundeck.verb.client.util.ArtifactUtils
@@ -43,9 +44,11 @@ class RundeckVerbRepository implements VerbArtifactRepository {
     ManifestService manifestService
     String rundeckVerbEndpoint
 
-    RundeckVerbRepository(String rundeckVerbEndpoint) {
-        this.rundeckVerbEndpoint = rundeckVerbEndpoint
-        this.manifestService = new MemoryManifestService(rundeckVerbEndpoint+"/manifest")
+    RundeckVerbRepository(RepositoryDefinition repoDef) {
+        if(!repoDef.configProperties.rundeckRepoEndpoint) throw new Exception("Rundeck repository endpoint must be provided by setting configProperties.rundeckRepoEndpoint in repository definition.")
+        this.rundeckVerbEndpoint = repoDef.configProperties.rundeckRepoEndpoint
+        this.repositoryDefinition = repoDef
+        this.manifestService = new MemoryManifestService(new HttpManifestSource(new URL(rundeckVerbEndpoint+ "/manifest")))
     }
 
     @Override
@@ -139,5 +142,10 @@ class RundeckVerbRepository implements VerbArtifactRepository {
     @Override
     void recreateAndSaveManifest() {
         //no-op
+    }
+
+    @Override
+    boolean isEnabled() {
+        return repositoryDefinition.enabled
     }
 }

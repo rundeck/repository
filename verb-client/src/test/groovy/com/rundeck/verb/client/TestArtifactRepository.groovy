@@ -68,4 +68,9 @@ class TestArtifactRepository implements VerbArtifactRepository {
     void recreateAndSaveManifest() {
 
     }
+
+    @Override
+    boolean isEnabled() {
+        return true
+    }
 }

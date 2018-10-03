@@ -20,5 +20,6 @@ class RepositoryDefinition {
     String repositoryName
     RepositoryType type
     RepositoryOwner owner
+    boolean enabled = true
     Map configProperties = [:]
 }

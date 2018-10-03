@@ -23,6 +23,7 @@ import com.rundeck.verb.artifact.ArtifactInstaller
 import com.rundeck.verb.artifact.VerbArtifact
 import com.rundeck.verb.manifest.search.ManifestSearch
 import com.rundeck.verb.manifest.search.ManifestSearchResult
+import com.rundeck.verb.repository.RepositoryDefinition
 import com.rundeck.verb.repository.RepositoryManager
 
 class RundeckVerbClient implements VerbClient {
@@ -72,7 +73,7 @@ class RundeckVerbClient implements VerbClient {
     }
 
     @Override
-    List<String> listRepositories() {
+    List<RepositoryDefinition> listRepositories() {
         return repositoryManager.listRepositories()
     }
 

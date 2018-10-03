@@ -22,6 +22,7 @@ import com.rundeck.verb.ResponseMessage
 import com.rundeck.verb.artifact.VerbArtifact
 import com.rundeck.verb.client.artifact.RundeckVerbArtifact
 import com.rundeck.verb.client.manifest.MemoryManifestService
+import com.rundeck.verb.client.manifest.MemoryManifestSource
 import com.rundeck.verb.client.manifest.StorageTreeManifestCreator
 import com.rundeck.verb.client.manifest.StorageTreeManifestSource
 import com.rundeck.verb.client.util.ArtifactFileset
@@ -39,6 +40,7 @@ import groovy.transform.PackageScope
 import org.rundeck.storage.data.DataUtil
 
 class StorageTreeVerbArtifactRepository implements VerbArtifactRepository {
+    private static final String MEMORY_MANIFEST_SOURCE = "memory"
     static final String ARTIFACT_BASE = "artifacts/"
     static final String BINARY_BASE = "binary/"
     @PackageScope
@@ -61,7 +63,7 @@ class StorageTreeVerbArtifactRepository implements VerbArtifactRepository {
         if(!repositoryDefinition.configProperties.manifestPath) throw new Exception("Path to manifest in storage tree must be provided by setting configProperties.manifestPath in repository definition.")
         this.storageTree = storageTree
         this.repositoryDefinition = repositoryDefinition
-        this.manifestSource = new StorageTreeManifestSource(storageTree,this.repositoryDefinition.configProperties.manifestPath)
+        this.manifestSource = repositoryDefinition.configProperties.manifestType == MEMORY_MANIFEST_SOURCE ? new MemoryManifestSource() : new StorageTreeManifestSource(storageTree, this.repositoryDefinition.configProperties.manifestPath)
         this.manifestService = new MemoryManifestService(manifestSource)
         manifestCreator = new StorageTreeManifestCreator(storageTree)
     }
@@ -151,5 +153,8 @@ class StorageTreeVerbArtifactRepository implements VerbArtifactRepository {
         manifestService.syncManifest()
     }
 
-
+    @Override
+    boolean isEnabled() {
+        return repositoryDefinition.enabled
+    }
 }

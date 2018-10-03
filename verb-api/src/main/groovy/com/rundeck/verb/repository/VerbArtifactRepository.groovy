@@ -28,4 +28,5 @@ interface VerbArtifactRepository {
     ResponseBatch uploadArtifact(InputStream artifactInputStream)
     ManifestService getManifestService()
     void recreateAndSaveManifest()
+    boolean isEnabled()
 }

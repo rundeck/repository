@@ -36,7 +36,7 @@ class RundeckRepositoryManager implements RepositoryManager {
     private ObjectMapper mapper = new ObjectMapper()
     private YAMLFactory yamlFactory = new YAMLFactory()
     protected Map<String, VerbArtifactRepository> repositories = [:]
-    private RepositoryDefinitionList repositoryDefinitions
+    protected RepositoryDefinitionList repositoryDefinitions
     private URL repositoryDefinitionDatasource
     private RepositoryFactory repositoryFactory
 
@@ -64,8 +64,8 @@ class RundeckRepositoryManager implements RepositoryManager {
     }
 
     @Override
-    List<String> listRepositories() {
-        return repositories.keySet().toList()
+    List<RepositoryDefinition> listRepositories() {
+        return repositoryDefinitions.repositories
     }
 
     @Override
@@ -78,11 +78,11 @@ class RundeckRepositoryManager implements RepositoryManager {
     void addRepository(final RepositoryDefinition repositoryDefinition) {
         initializeRepoFromDefinition(repositoryDefinition)
         repositoryDefinitions.repositories.add(repositoryDefinition)
-        syncRepository(repositoryDefinition.repositoryName)
+        if(repositoryDefinition.enabled) syncRepository(repositoryDefinition.repositoryName)
         saveRepositoryDefinitionList()
     }
 
-    private void saveRepositoryDefinitionList() {
+    protected void saveRepositoryDefinitionList() {
         mapper.writeValue(yamlFactory.createGenerator(new File(repositoryDefinitionDatasource.toURI()),
                                                       JsonEncoding.UTF8), repositoryDefinitions)
     }
@@ -100,9 +100,7 @@ class RundeckRepositoryManager implements RepositoryManager {
     @Override
     void syncRepositories() {
         //TODO: do this in parallel
-        repositories.values().each {
-            it.manifestService.syncManifest()
-        }
+        enabledRepos().each { it.manifestService.syncManifest() }
     }
 
     @Override
@@ -113,7 +111,14 @@ class RundeckRepositoryManager implements RepositoryManager {
 
     @Override
     void refreshRepositoryManifests() {
-        repositories.values().each { it.recreateAndSaveManifest() }
+        enabledRepos().each { it.recreateAndSaveManifest() }
+    }
+
+    @Override
+    void toggleRepositoryEnabled(final String repositoryName, final boolean enabled) {
+        def repo = repositoryDefinitions.repositories.find { it.repositoryName == repositoryName }
+        repo.enabled = enabled
+        saveRepositoryDefinitionList()
     }
 
     @Override
@@ -125,12 +130,16 @@ class RundeckRepositoryManager implements RepositoryManager {
     @Override
     Collection<ManifestSearchResult> searchRepositories(final ManifestSearch search) {
         def results = []
-        repositories.values().each {
+        enabledRepos().each {
             ManifestSearchResult result = new ManifestSearchResult(repositoryName: it.repositoryDefinition.repositoryName)
             result.results = it.manifestService.searchArtifacts(search)
             results.add(result)
         }
         return results
+    }
+
+    private List<VerbArtifactRepository> enabledRepos() {
+        repositories.values().findAll { it.enabled }
     }
 
     @Override
@@ -144,7 +153,7 @@ class RundeckRepositoryManager implements RepositoryManager {
     @Override
     Collection<ManifestSearchResult> listArtifacts(final Integer offset, final Integer max) {
         def results = []
-        repositories.values().each {
+        enabledRepos().each {
             ManifestSearchResult result = new ManifestSearchResult(repositoryName: it.repositoryDefinition.repositoryName)
             result.results = it.manifestService.listArtifacts(offset,max)
             results.add(result)

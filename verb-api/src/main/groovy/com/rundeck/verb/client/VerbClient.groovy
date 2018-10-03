@@ -20,6 +20,7 @@ import com.rundeck.verb.artifact.ArtifactType
 import com.rundeck.verb.artifact.VerbArtifact
 import com.rundeck.verb.manifest.search.ManifestSearch
 import com.rundeck.verb.manifest.search.ManifestSearchResult
+import com.rundeck.verb.repository.RepositoryDefinition
 
 interface VerbClient {
 
@@ -84,5 +85,5 @@ interface VerbClient {
      * List names of all repositories defined in the system
      * @return
      */
-    List<String> listRepositories()
+    List<RepositoryDefinition> listRepositories()
 }

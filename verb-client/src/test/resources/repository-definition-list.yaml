@@ -1,8 +1,13 @@
 repositories:
-    -
-        repositoryName: private
-        type: FILE
-        owner: PRIVATE
-        configProperties:
-                repositoryLocation: /tmp/verb-repo
-                manifestLocation: /tmp/verb-repo/manifest.json
+-   repositoryName: private
+    type: FILE
+    owner: PRIVATE
+    configProperties:
+        repositoryLocation: /tmp/verb-repo
+        manifestLocation: /tmp/verb-repo/manifest.json
+-   repositoryName: official
+    enabled: false
+    type: HTTP
+    owner: RUNDECK
+    configProperties:
+        rundeckRepoEndpoint: http://localhost:8000

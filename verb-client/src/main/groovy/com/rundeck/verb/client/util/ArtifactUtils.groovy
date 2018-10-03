@@ -84,7 +84,6 @@ class ArtifactUtils {
     }
 
     static File renameScriptFile(final File scriptFile) {
-        println scriptFile.absolutePath
         ZipFile zip = new ZipFile(scriptFile)
         ZipEntry root = zip.entries().nextElement()
         File destFile = new File(scriptFile.parentFile,root.getName().replace("/","")+".zip")

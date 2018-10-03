@@ -23,6 +23,7 @@ import com.rundeck.verb.client.artifact.RundeckVerbArtifact
 import com.rundeck.verb.client.manifest.FilesystemManifestCreator
 import com.rundeck.verb.client.manifest.FilesystemManifestSource
 import com.rundeck.verb.client.manifest.MemoryManifestService
+import com.rundeck.verb.client.manifest.MemoryManifestSource
 import com.rundeck.verb.client.util.ArtifactFileset
 import com.rundeck.verb.client.util.ArtifactUtils
 import com.rundeck.verb.client.validators.BinaryValidator
@@ -34,6 +35,7 @@ import com.rundeck.verb.repository.VerbArtifactRepository
 
 
 class FilesystemArtifactRepository implements VerbArtifactRepository {
+    private static final String MEMORY_MANIFEST_SOURCE = "memory"
     private static final String ARTIFACT_BASE = "artifacts/"
     private static final String BINARY_BASE = "binary/"
     private RepositoryDefinition repositoryDefinition
@@ -44,7 +46,7 @@ class FilesystemArtifactRepository implements VerbArtifactRepository {
 
     FilesystemArtifactRepository(RepositoryDefinition repoDef) {
         if(!repoDef.configProperties.repositoryLocation) throw new Exception("Path to repository location must be provided by setting configProperties.repositoryLocation in repository definition.")
-        if(!repoDef.configProperties.manifestLocation) throw new Exception("Path to manifest must be provided by setting configProperties.manifestLocation in repository definition.")
+        if(!repoDef.configProperties.manifestLocation && !repoDef.configProperties.manifestType == MEMORY_MANIFEST_SOURCE) throw new Exception("Path to manifest must be provided by setting configProperties.manifestLocation in repository definition.")
         this.repositoryDefinition = repoDef
         repoBase = new File(repoDef.configProperties.repositoryLocation)
         if(!repoBase.exists()) {
@@ -53,7 +55,7 @@ class FilesystemArtifactRepository implements VerbArtifactRepository {
 
         ensureExists(repoBase,ARTIFACT_BASE)
         ensureExists(repoBase,BINARY_BASE)
-        manifestSource = new FilesystemManifestSource(repoDef.configProperties.manifestLocation)
+        manifestSource = repoDef.configProperties.manifestType == MEMORY_MANIFEST_SOURCE ? new MemoryManifestSource() : new FilesystemManifestSource(repoDef.configProperties.manifestLocation)
         manifestService = new MemoryManifestService(manifestSource)
         manifestCreator = new FilesystemManifestCreator(repoBase.absolutePath+"/artifacts")
     }
@@ -129,5 +131,10 @@ class FilesystemArtifactRepository implements VerbArtifactRepository {
     void recreateAndSaveManifest() {
         manifestSource.saveManifest(manifestCreator.createManifest())
         manifestService.syncManifest()
+    }
+
+    @Override
+    boolean isEnabled() {
+        return repositoryDefinition.enabled
     }
 }

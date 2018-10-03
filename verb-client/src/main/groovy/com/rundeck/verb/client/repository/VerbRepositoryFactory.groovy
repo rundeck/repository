@@ -34,7 +34,7 @@ class VerbRepositoryFactory implements RepositoryFactory {
         } else if(definition.type == RepositoryType.STORAGE_TREE) {
             repository = new StorageTreeVerbArtifactRepository(treeProvider.getTree(definition.configProperties.treeName),definition)
         } else if(definition.type == RepositoryType.HTTP && definition.owner == RepositoryOwner.RUNDECK) {
-            repository = new RundeckVerbRepository(definition.configProperties.rundeckRepoEndpoint)
+            repository = new RundeckVerbRepository(definition)
         } else {
             throw new Exception("Unknown repository type: ${definition.type}")
         }

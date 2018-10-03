@@ -28,12 +28,8 @@ import com.rundeck.verb.client.manifest.MemoryManifestService
 import com.rundeck.verb.client.manifest.MemoryManifestSource
 import com.rundeck.verb.client.manifest.search.ManifestSearchImpl
 import com.rundeck.verb.client.manifest.search.StringSearchTerm
-import com.rundeck.verb.manifest.ArtifactManifest
-import com.rundeck.verb.manifest.ManifestEntry
-import com.rundeck.verb.manifest.search.ManifestSearch
-import com.rundeck.verb.manifest.search.ManifestSearchResult
 import com.rundeck.verb.repository.RepositoryDefinition
-import com.rundeck.verb.repository.RepositoryManager
+import com.rundeck.verb.repository.RepositoryDefinitionList
 import com.rundeck.verb.repository.RepositoryOwner
 import com.rundeck.verb.repository.RepositoryType
 import spock.lang.Specification
@@ -45,8 +41,9 @@ class RundeckRepositoryManagerTest extends Specification {
         RundeckRepositoryManager manager = new RundeckRepositoryManager()
         manager.setRepositoryDefinitionListDatasourceUrl(getClass().getClassLoader().getResource("repository-definition-list.yaml").toString())
         then:
-        manager.listRepositories().size() == 1
-        manager.listRepositories().contains("private")
+        manager.listRepositories().size() == 2
+        manager.listRepositories().find{ it.repositoryName == "private" }
+        manager.listRepositories().find{ it.repositoryName == "official" }
     }
 
     def "AddRepository"() {
@@ -66,7 +63,7 @@ class RundeckRepositoryManagerTest extends Specification {
         manager.addRepository(rd)
         then:
         manager.listRepositories().size() == 1
-        manager.listRepositories().contains("MyRepo")
+        manager.listRepositories().find{ it.repositoryName == "MyRepo" }
     }
 
     def "Upload Artifact Fail with invalid repo name"() {
@@ -106,12 +103,44 @@ class RundeckRepositoryManagerTest extends Specification {
 
     }
 
+    def "Enable/Disable repositories"() {
+        setup:
+        File repoLoc = File.createTempDir()
+
+        TestRundeckRepositoryManager manager = new TestRundeckRepositoryManager()
+        RepositoryDefinition rd = new RepositoryDefinition()
+        rd.repositoryName = "MyRepo"
+        rd.owner = RepositoryOwner.PRIVATE
+        rd.type = RepositoryType.FILE
+        rd.configProperties.repositoryLocation = repoLoc.absolutePath
+        rd.configProperties.manifestType = "memory"
+        manager.addRepository(rd)
+
+        expect:
+        manager.listRepositories().size() == 2
+        manager.listRepositories().find { it.repositoryName == "private" }.enabled
+        manager.listRepositories().find { it.repositoryName == "MyRepo" }.enabled
+        manager.toggleRepositoryEnabled("MyRepo",false)
+        manager.listRepositories().find { it.repositoryName == "private" }.enabled
+        !manager.listRepositories().find { it.repositoryName == "MyRepo" }.enabled
+
+
+
+    }
+
     class TestRundeckRepositoryManager extends RundeckRepositoryManager {
 
         TestRundeckRepositoryManager() {
-            repositories["private"] = new TestArtifactRepository(new MemoryManifestService(new MemoryManifestSource(manifest:TestUtils.createTestManifest())),new RepositoryDefinition(repositoryName: "private"))
+            def privateRepoDefn = new RepositoryDefinition(repositoryName: "private")
+            repositories["private"] = new TestArtifactRepository(new MemoryManifestService(new MemoryManifestSource(manifest:TestUtils.createTestManifest())),privateRepoDefn)
+            if(!repositoryDefinitions) repositoryDefinitions = new RepositoryDefinitionList()
+            repositoryDefinitions.repositories.add(privateRepoDefn)
         }
 
+        @Override
+        protected void saveRepositoryDefinitionList() {
+
+        }
     }
 
 }
