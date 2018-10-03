@@ -39,7 +39,7 @@ class RundeckVerbClientTest extends Specification {
     @Shared
     File buildDir
     @Shared
-    String builtNotifierPath = "Notifier/build/libs/Notifier-0.1.0.jar" //assumes buildDir directory
+    String builtNotifierPath = "notifier/build/libs/notifier-0.1.0.jar" //assumes buildDir directory
     @Shared
     FilesystemArtifactTemplateGenerator generator
 

@@ -40,7 +40,7 @@ class FilesystemArtifactRepositoryTest extends Specification {
     @Shared
     File buildDir
     @Shared
-    String builtNotifierPath = "Notifier/build/libs/Notifier-0.1.0.jar" //assumes buildDir directory
+    String builtNotifierPath = "notifier/build/libs/notifier-0.1.0.jar" //assumes buildDir directory
     @Shared
     FilesystemArtifactRepository repo
     @Shared
@@ -63,7 +63,7 @@ class FilesystemArtifactRepositoryTest extends Specification {
         repo.manifestService.syncManifest()
         generator = new FilesystemArtifactTemplateGenerator()
         generator.generate("Notifier", PluginType.java, "Notification", buildDir.absolutePath)
-        TestUtils.buildGradle(new File(buildDir, "Notifier"))
+        TestUtils.buildGradle(new File(buildDir, "notifier"))
     }
 
     def "SaveArtifactMetaToRepo"() {
