@@ -1,0 +1,21 @@
+plugins {
+    id 'groovy'
+    id 'application'
+}
+
+mainClassName = 'com.rundeck.repository.Verb'
+
+dependencies{
+    compile 'com.github.rundeck.cli-toolbelt:toolbelt:0.2.2'
+    compile 'com.github.rundeck.cli-toolbelt:toolbelt-jewelcli:0.2.2'
+    compile 'org.codehaus.groovy:groovy-all:2.4.13'
+    compile project(':repository-client')
+    testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
+}
+
+repositories {
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+    jcenter()
+    maven { url "https://jitpack.io" }
+    mavenLocal()
+}

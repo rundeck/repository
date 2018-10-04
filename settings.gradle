@@ -1,5 +1,5 @@
-rootProject.name = 'rundeck-verb-project'
+rootProject.name = 'rundeck-repository-project'
 
-include	'verb-api',
-	'verb-client',
-	'verb-cli'
+include	'repository-api',
+	'repository-client',
+	'repository-cli'
