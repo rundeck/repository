@@ -14,7 +14,7 @@ plugins {
 
 group = 'com.rundeck.repository'
 archivesBaseName = 'repository-api'
-version = "0.1"
+version = "0.2"
 
 dependencies {
     // Use the latest Groovy version for building this library
