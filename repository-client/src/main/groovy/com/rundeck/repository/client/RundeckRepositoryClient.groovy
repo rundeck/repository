@@ -87,7 +87,7 @@ class RundeckRepositoryClient implements RepositoryClient {
     }
 
     @Override
-    Collection<ManifestSearchResult> listArtifacts(String repoName, Integer offset = 0, Integer limit = -1) {
+    Collection<ManifestSearchResult> listArtifactsByRepository(String repoName, Integer offset = 0, Integer limit = -1) {
         return repositoryManager.listArtifacts(repoName, offset,limit)
     }
 

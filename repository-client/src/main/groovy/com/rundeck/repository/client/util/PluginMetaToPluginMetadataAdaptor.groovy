@@ -42,6 +42,11 @@ class PluginMetaToPluginMetadataAdaptor implements PluginMetadata {
     }
 
     @Override
+    String getPluginArtifactName() {
+        return meta.name
+    }
+
+    @Override
     String getPluginAuthor() {
         return meta.author
     }
@@ -63,6 +68,7 @@ class PluginMetaToPluginMetadataAdaptor implements PluginMetadata {
 
     @Override
     Date getPluginDate() {
+        if(!meta.date) return null
         return new Date(Instant.parse(meta.date).toEpochMilli())
     }
 

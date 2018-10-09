@@ -50,7 +50,7 @@ interface RepositoryClient {
     ResponseBatch installArtifact(String repositoryName, String artifactId, String version)
     Collection<ManifestSearchResult> searchManifests(ManifestSearch search)
     Collection<ManifestSearchResult> listArtifacts(Integer offset, Integer limit)
-    Collection<ManifestSearchResult> listArtifacts(String repoName, Integer offset, Integer limit)
+    Collection<ManifestSearchResult> listArtifactsByRepository(String repoName, Integer offset, Integer limit)
     /**
      * Get the artifact metadata from the repository
      *

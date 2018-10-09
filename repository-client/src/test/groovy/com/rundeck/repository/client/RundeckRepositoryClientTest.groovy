@@ -115,7 +115,7 @@ class RundeckRepositoryClientTest extends Specification {
         client.repositoryManager.setRepositoryDefinitionListDatasourceUrl(getClass().getClassLoader().getResource("repository-definition-list.yaml").toString())
 
         when:
-        def manifestSearchResults = client.listArtifacts("private")
+        def manifestSearchResults = client.listArtifactsByRepository("private")
 
         then:
         manifestSearchResults.size() == 1
