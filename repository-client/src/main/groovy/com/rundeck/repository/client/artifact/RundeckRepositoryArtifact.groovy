@@ -53,6 +53,7 @@ class RundeckRepositoryArtifact implements RepositoryArtifact {
     String thirdPartyDependencies
     String sourceLink
     String binaryLink
+    String originalFilename
 
     ManifestEntry createManifestEntry() {
         ManifestEntry entry = new ManifestEntry()
@@ -84,7 +85,7 @@ class RundeckRepositoryArtifact implements RepositoryArtifact {
     @Override
     @JsonIgnore
     String getInstallationFileName() {
-        return ArtifactUtils.sanitizedPluginName(name).toLowerCase()+ "."+ artifactType.extension
+        return artifactType == ArtifactType.SCRIPT_PLUGIN && originalFilename ? originalFilename : ArtifactUtils.sanitizedPluginName(name).toLowerCase()+ "."+ artifactType.extension
     }
 
     @Override

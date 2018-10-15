@@ -22,6 +22,9 @@ import com.rundeck.repository.client.TestUtils
 import spock.lang.Shared
 import spock.lang.Specification
 
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+
 
 class ArtifactUtilsTest extends Specification {
 
@@ -50,10 +53,29 @@ class ArtifactUtilsTest extends Specification {
         jarMeta.artifactType == ArtifactType.JAVA_PLUGIN
         scriptMeta.name == "MyScriptPlugin"
         scriptMeta.artifactType == ArtifactType.SCRIPT_PLUGIN
+        scriptMeta.originalFilename == "myscriptplugin-0.1.0-SNAPSHOT.zip"
         manualZipScriptMeta.name == "ManualZipScriptPlugin"
         manualZipScriptMeta.artifactType == ArtifactType.SCRIPT_PLUGIN
+        manualZipScriptMeta.originalFilename == "manualzipscriptplugin.zip"
 
+    }
 
+    def "rename script"() {
+        setup:
+        File buildDir = File.createTempDir()
+        generator = new FilesystemArtifactTemplateGenerator()
+        generator.generate("MyScriptPlugin", PluginType.script,"FileCopier",buildDir.absolutePath)
+        generator.generate("ManualZipScriptPlugin", PluginType.script,"FileCopier",buildDir.absolutePath)
+        TestUtils.gradlePluginZip(new File(buildDir,"myscriptplugin"))
+        TestUtils.zipDir(new File(buildDir,"manualzipscriptplugin").absolutePath)
+        File destFile = File.createTempFile("tmp","script")
+        Files.copy(new File(buildDir,"myscriptplugin/build/libs/myscriptplugin-0.1.0-SNAPSHOT.zip").toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
+        File destFile2 = File.createTempFile("tmp2","script")
+        Files.copy(new File(buildDir,"manualzipscriptplugin.zip").toPath(), destFile2.toPath(), StandardCopyOption.REPLACE_EXISTING)
+
+        expect:
+        ArtifactUtils.renameScriptFile(destFile).name == "myscriptplugin-0.1.0-SNAPSHOT.zip"
+        ArtifactUtils.renameScriptFile(destFile2).name == "manualzipscriptplugin.zip"
 
     }
 }

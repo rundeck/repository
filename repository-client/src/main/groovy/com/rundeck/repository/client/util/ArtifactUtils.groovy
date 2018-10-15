@@ -79,6 +79,7 @@ class ArtifactUtils {
         }
 
         artifact = createArtifactFromRundeckPluginYaml(extractArtifactMetaFromZip(zipArtifact))
+        artifact.originalFilename = zipArtifact.entries().find { it.name.endsWith("plugin.yaml")}.name.split("/").first()+".zip" //script plugins are strict about the filename matching the internal structure
         return artifact
     }
 
@@ -88,23 +89,15 @@ class ArtifactUtils {
 
     static File renameScriptFile(final File scriptFile) {
         ZipFile zip = new ZipFile(scriptFile)
-        ZipEntry root = zip.entries().nextElement()
-        File destFile = new File(scriptFile.parentFile,root.getName().replace("/","")+".zip")
+        ZipEntry root = zip.entries().find { it.name.endsWith("plugin.yaml")}
+        String rootName = root.name.split("/").first()
+        File destFile = new File(scriptFile.parentFile,rootName+".zip")
         Files.copy(scriptFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
         return destFile
     }
 
     static InputStream extractArtifactMetaFromZip(final ZipFile artifactZip) {
-        ZipEntry emeta = artifactZip.getEntry(Constants.ARTIFACT_META_FILE_NAME)
-        if(!emeta) {
-            def fnameParts = artifactZip.name.split("/")
-            String root = fnameParts.last().replace(".zip","")
-            emeta = artifactZip.getEntry(root+"/"+Constants.ARTIFACT_META_FILE_NAME)
-        }
-        if(!emeta) {
-            String root = artifactZip.entries().nextElement().name
-            emeta = artifactZip.getEntry(root+Constants.ARTIFACT_META_FILE_NAME)
-        }
+        ZipEntry emeta = artifactZip.entries().find { it.name.endsWith("plugin.yaml")}
         artifactZip.getInputStream(emeta)
     }
 

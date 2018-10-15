@@ -6,7 +6,7 @@ plugins {
 
 group = 'com.rundeck.repository'
 archivesBaseName = 'repository-client'
-version = "0.8.2"
+version = "0.8.3"
 
 // In this section you declare where to find the dependencies of your project
 repositories {

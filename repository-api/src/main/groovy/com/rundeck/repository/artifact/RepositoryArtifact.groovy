@@ -53,6 +53,8 @@ interface RepositoryArtifact {
     void setSourceLink(final String sourceLink)
     String getBinaryLink()
     void setBinaryLink(final String binaryLink)
+    String getOriginalFilename()
+    void setOriginalFilename(final String originalFilename)
 
     boolean validate()
 
