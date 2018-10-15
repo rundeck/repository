@@ -58,20 +58,32 @@ class ArtifactUtils {
     static RundeckRepositoryArtifact getMetaFromUploadedFile(final File artifactFile) {
         if(!artifactFile.exists()) throw new Exception("Artifact file: ${artifactFile.absolutePath} does not exist!")
         RundeckRepositoryArtifact artifact = null
-        try {
-            JarPluginProviderLoader jarLoader = new JarPluginProviderLoader(artifactFile,unusedCacheDir,unusedCacheDir)
-            artifact = createArtifactFromPluginMetadata(jarLoader)
-            artifact.providesServices = []
-            jarLoader.listProviders().each {
-                artifact.providesServices.add(it.service)
+        ZipFile zipArtifact = new ZipFile(artifactFile)
+        boolean scriptPlugin = pluginYamlExists(zipArtifact)
+        if(!scriptPlugin) {
+            try {
+                JarPluginProviderLoader jarLoader = new JarPluginProviderLoader(
+                        artifactFile,
+                        unusedCacheDir,
+                        unusedCacheDir
+                )
+                artifact = createArtifactFromPluginMetadata(jarLoader)
+                artifact.providesServices = []
+                jarLoader.listProviders().each {
+                    artifact.providesServices.add(it.service)
+                }
+                return artifact
+            } catch (Exception ex) {
+                //not a jar try script
             }
-            return artifact
-        } catch(Exception ex) {
-            //not a jar try script
         }
 
-        artifact = createArtifactFromRundeckPluginYaml(extractArtifactMetaFromZip(new ZipFile(artifactFile)))
+        artifact = createArtifactFromRundeckPluginYaml(extractArtifactMetaFromZip(zipArtifact))
         return artifact
+    }
+
+    static boolean pluginYamlExists(final ZipFile zipArtifactFile) {
+        zipArtifactFile.entries().find { it.name.endsWith("plugin.yaml")} //If plugin.yaml exists it's more likely the artifact is a script plugin
     }
 
     static File renameScriptFile(final File scriptFile) {
@@ -85,8 +97,13 @@ class ArtifactUtils {
     static InputStream extractArtifactMetaFromZip(final ZipFile artifactZip) {
         ZipEntry emeta = artifactZip.getEntry(Constants.ARTIFACT_META_FILE_NAME)
         if(!emeta) {
-            ZipEntry root = artifactZip.entries().nextElement()
-            emeta = artifactZip.getEntry(root.name+Constants.ARTIFACT_META_FILE_NAME)
+            def fnameParts = artifactZip.name.split("/")
+            String root = fnameParts.last().replace(".zip","")
+            emeta = artifactZip.getEntry(root+"/"+Constants.ARTIFACT_META_FILE_NAME)
+        }
+        if(!emeta) {
+            String root = artifactZip.entries().nextElement().name
+            emeta = artifactZip.getEntry(root+Constants.ARTIFACT_META_FILE_NAME)
         }
         artifactZip.getInputStream(emeta)
     }
@@ -132,6 +149,10 @@ class ArtifactUtils {
         YAMLFactory yamlFactory = new YAMLFactory()
         YAMLGenerator generator = yamlFactory.createGenerator(targetStream)
         mapper.writeValue(generator,verbArtifact)
+    }
+
+    static def artifactToJson(final RepositoryArtifact verbArtifact) {
+        mapper.writeValueAsString(verbArtifact)
     }
 
     static void writeArtifactManifestToFile(ArtifactManifest manifest, OutputStream outputStream) {

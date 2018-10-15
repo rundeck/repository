@@ -28,6 +28,11 @@ class TestUtils {
         p.waitFor()
     }
 
+    static void gradlePluginZip(File baseDir) {
+        Process p = new ProcessBuilder("gradle","pluginZip").directory(baseDir).start()
+        p.waitFor()
+    }
+
     static void zipDir(final String dirToZip) {
         File rootDir = new File(dirToZip)
         def zipp = new  ProcessBuilder("zip","-r",rootDir.name+".zip", rootDir.name+"/").directory(rootDir.parentFile).start()

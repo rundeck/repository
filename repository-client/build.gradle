@@ -6,7 +6,7 @@ plugins {
 
 group = 'com.rundeck.repository'
 archivesBaseName = 'repository-client'
-version = "0.8.1"
+version = "0.8.2"
 
 // In this section you declare where to find the dependencies of your project
 repositories {
@@ -31,7 +31,7 @@ dependencies {
     compile "ch.qos.logback:logback-classic:1.0.13"
     // Use the awesome Spock testing and specification framework
     testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
-    testCompile 'com.github.rundeck:plugin-bootstrap:0.4.1'
+    testCompile 'com.github.rundeck:plugin-bootstrap:0.4.2'
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {

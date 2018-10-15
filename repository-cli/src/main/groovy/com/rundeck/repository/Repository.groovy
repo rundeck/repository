@@ -16,10 +16,14 @@
 package com.rundeck.repository
 
 import com.lexicalscope.jewel.cli.Option
-import com.rundeck.repository.artifact.ArtifactType
-import com.rundeck.repository.client.RundeckRepositoryClient
-import com.rundeck.repository.client.RepositoryClient
+import com.rundeck.repository.client.util.ArtifactFileset
 import com.rundeck.repository.client.util.ArtifactUtils
+import okhttp3.MediaType
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
+import okhttp3.Response
 import org.rundeck.toolbelt.Command
 import org.rundeck.toolbelt.CommandRunFailure
 import org.rundeck.toolbelt.SubCommand
@@ -29,37 +33,47 @@ import org.rundeck.toolbelt.input.jewelcli.JewelInput
 @SubCommand
 class Repository {
 
-    private static final List<String> VALID_ARTIFACT_TYPES = ArtifactType.values().collect { ArtifactUtils.niceArtifactTypeName(it)}
-    RepositoryClient client = new RundeckRepositoryClient()
+    String officialRundeckRepoArtifactSaveUrl = "https://2n2gfj5lgh.execute-api.us-east-1.amazonaws.com/dev/save"
+    String officialRundeckRepoSubmissionUrl = "https://2n2gfj5lgh.execute-api.us-east-1.amazonaws.com/dev/upload"
 
     public static void main(String[] args) throws IOException, CommandRunFailure {
         ToolBelt.with("repository", new JewelInput(), new Repository()).runMain(args, true);
     }
 
-    @Command(description = "Create a Verb artifact")
-    public void create(CreateOpts createOpts) {
-        if(!VALID_ARTIFACT_TYPES.contains(createOpts.artifactType)) {
-            println "Artifact type must be one of: ${VALID_ARTIFACT_TYPES.join("|")}"
-            return
+    @Command(description = "Submit artifact to official Rundeck Repository")
+    public void submit(SubmitOpts submitOpts) {
+        File artifactFile = new File(submitOpts.getArtifactFilePath())
+        if(!artifactFile.exists()) throw new Exception("Artifact file: ${submitOpts.getArtifactFilePath()} cannot be found")
+        ArtifactFileset artifactFileset = ArtifactUtils.constructArtifactFileset(artifactFile.newInputStream())
+        OkHttpClient client = new OkHttpClient()
+        RequestBody rqBody = RequestBody.create(MediaType.parse("application/octet-stream"), artifactFileset.artifactBinary)
+        Request rq = new Request.Builder().url(officialRundeckRepoSubmissionUrl+
+                                               "/"+artifactFileset.artifact.artifactType.name().toLowerCase()+
+                                               "/"+artifactFileset.artifact.id+
+                                               "/"+artifactFileset.artifact.version)
+                                          .post(rqBody)
+                                          .build()
+        Response response = client.newCall(rq).execute()
+        if(response.code() == 200) {
+            println response.body().charStream().text
+            RequestBody metaBody = RequestBody.create(MediaType.parse("application/json"), ArtifactUtils.artifactToJson(artifactFileset.artifact))
+            Request rqMeta = new Request.Builder().url(officialRundeckRepoArtifactSaveUrl)
+                                                      .post(metaBody)
+                                                      .build()
+            Response metaSaveResponse = client.newCall(rqMeta).execute()
+            println metaSaveResponse.body().charStream().text
         }
-        def response = client.createArtifactTemplate(createOpts.artifactName,
-                                                     ArtifactUtils.artifactTypeFromNice(createOpts.artifactType),
-                                                     createOpts.serviceType,
-                                                     createOpts.destinationDirectory)
-        response.messages.each {
-            println it.message
-        }
+
     }
 
-    interface CreateOpts {
-        @Option(shortName = "n",description = "Artifact Name")
-        String getArtifactName()
-        @Option(shortName = "t",description = "Artifact Type")
-        String getArtifactType()
-        @Option(shortName = "s",description = "Rundeck Service Type")
-        String getServiceType()
-        @Option(shortName = "d",description = "The directory in which the artifact directory will be generated")
-        String getDestinationDirectory()
+    interface SubmitOpts {
+        @Option(shortName = "a",description = "Author id")
+        String getAuthorId()
+        @Option(shortName = "t",description = "Author developer token")
+        String getAuthorToken()
+        @Option(shortName = "f",description = "Path to artifact file")
+        String getArtifactFilePath()
+
     }
 
 }

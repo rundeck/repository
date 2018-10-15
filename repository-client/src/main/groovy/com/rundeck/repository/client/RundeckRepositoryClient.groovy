@@ -17,6 +17,7 @@ package com.rundeck.repository.client
 
 import com.rundeck.repository.Constants
 import com.rundeck.repository.ResponseBatch
+import com.rundeck.repository.ResponseCodes
 import com.rundeck.repository.ResponseMessage
 import com.rundeck.repository.api.RepositoryManager
 import com.rundeck.repository.artifact.ArtifactInstaller
