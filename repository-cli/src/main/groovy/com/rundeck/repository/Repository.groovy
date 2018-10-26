@@ -18,6 +18,7 @@ package com.rundeck.repository
 import com.lexicalscope.jewel.cli.Option
 import com.rundeck.repository.client.util.ArtifactFileset
 import com.rundeck.repository.client.util.ArtifactUtils
+import groovy.json.JsonSlurper
 import okhttp3.MediaType
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
@@ -25,6 +26,7 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.Response
 import org.rundeck.toolbelt.Command
+import org.rundeck.toolbelt.CommandOutput
 import org.rundeck.toolbelt.CommandRunFailure
 import org.rundeck.toolbelt.SubCommand
 import org.rundeck.toolbelt.ToolBelt
@@ -41,7 +43,7 @@ class Repository {
     }
 
     @Command(description = "Submit artifact to official Rundeck Repository")
-    public void submit(SubmitOpts submitOpts) {
+    public void submit(SubmitOpts submitOpts, CommandOutput output) {
         File artifactFile = new File(submitOpts.getArtifactFilePath())
         if(!artifactFile.exists()) throw new Exception("Artifact file: ${submitOpts.getArtifactFilePath()} cannot be found")
         ArtifactFileset artifactFileset = ArtifactUtils.constructArtifactFileset(artifactFile.newInputStream())
@@ -53,15 +55,20 @@ class Repository {
                                                "/"+artifactFileset.artifact.version)
                                           .post(rqBody)
                                           .build()
+        output.output("Submitting ${artifactFileset.artifact.id} - ${artifactFileset.artifact.name} - ${artifactFileset.artifact.version}")
         Response response = client.newCall(rq).execute()
         if(response.code() == 200) {
-            println response.body().charStream().text
             RequestBody metaBody = RequestBody.create(MediaType.parse("application/json"), ArtifactUtils.artifactToJson(artifactFileset.artifact))
             Request rqMeta = new Request.Builder().url(officialRundeckRepoArtifactSaveUrl)
                                                       .post(metaBody)
                                                       .build()
             Response metaSaveResponse = client.newCall(rqMeta).execute()
-            println metaSaveResponse.body().charStream().text
+            JsonSlurper jsonSlurper = new JsonSlurper()
+            def json = jsonSlurper.parse(metaSaveResponse.body().charStream())
+            output.output(json.msg)
+        } else {
+            output.error("Upload failed")
+            output.error(response.body().charStream().text)
         }
 
     }

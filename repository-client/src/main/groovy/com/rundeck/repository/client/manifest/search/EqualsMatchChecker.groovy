@@ -20,6 +20,13 @@ import com.rundeck.repository.manifest.search.MatchChecker
 
 class EqualsMatchChecker implements MatchChecker<String,String> {
 
+    private static final String TYPE = "eq"
+
+    @Override
+    String getType() {
+        return TYPE
+    }
+
     @Override
     boolean matches(final String checkValue, final String searchValue) {
         if(!checkValue) return false

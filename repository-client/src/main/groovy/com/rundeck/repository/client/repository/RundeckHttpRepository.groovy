@@ -20,6 +20,7 @@ import com.rundeck.repository.ResponseCodes
 import com.rundeck.repository.ResponseMessage
 import com.rundeck.repository.artifact.RepositoryArtifact
 import com.rundeck.repository.client.artifact.RundeckRepositoryArtifact
+import com.rundeck.repository.client.manifest.HttpManifestService
 import com.rundeck.repository.client.manifest.HttpManifestSource
 import com.rundeck.repository.client.manifest.MemoryManifestService
 import com.rundeck.repository.client.util.ArtifactFileset
@@ -48,7 +49,7 @@ class RundeckHttpRepository implements ArtifactRepository {
         if(!repoDef.configProperties.rundeckRepoEndpoint) throw new Exception("Rundeck repository endpoint must be provided by setting configProperties.rundeckRepoEndpoint in repository definition.")
         this.rundeckRepositoryEndpoint = repoDef.configProperties.rundeckRepoEndpoint
         this.repositoryDefinition = repoDef
-        this.manifestService = new MemoryManifestService(new HttpManifestSource(new URL(rundeckRepositoryEndpoint+ "/manifest")))
+        this.manifestService = new HttpManifestService(repoDef.configProperties.rundeckRepoEndpoint)
     }
 
     @Override
@@ -61,7 +62,7 @@ class RundeckHttpRepository implements ArtifactRepository {
         Response response
         try {
             String artifactVer = version ?: manifestService.getEntry(artifactId).currentVersion
-            Request rq = new Request.Builder().method("GET",null).url(rundeckRepositoryEndpoint+ "/artifact/${ArtifactUtils.artifactMetaFileName(artifactId, artifactVer)}".toString()).build()
+            Request rq = new Request.Builder().method("GET",null).url(rundeckRepositoryEndpoint+ "/artifact/${artifactId}/${artifactVer}".toString()).build()
             response = client.newCall(rq).execute()
             return ArtifactUtils.createArtifactFromYamlStream(response.body().byteStream())
         } finally {
@@ -74,64 +75,19 @@ class RundeckHttpRepository implements ArtifactRepository {
         ManifestEntry entry = manifestService.getEntry(artifactId)
         String artifactVer = version ?: entry.currentVersion
         String extension = ArtifactUtils.artifactTypeFromNice(entry.artifactType).extension
-        Request rq = new Request.Builder().method("GET",null).url(rundeckRepositoryEndpoint+ "/binary/${ArtifactUtils.artifactBinaryFileName(artifactId, artifactVer, extension)}".toString()).build()
+        Request rq = new Request.Builder().method("GET",null).url(rundeckRepositoryEndpoint+ "/binary/${artifactId}/${artifactVer}".toString()).build()
         Response response = client.newCall(rq).execute()
         return response.body().byteStream()
     }
 
     @Override
     ResponseBatch saveNewArtifact(final RepositoryArtifact artifact) {
-        ResponseBatch rbatch = new ResponseBatch()
-        ByteArrayOutputStream baos = new ByteArrayOutputStream()
-        ArtifactUtils.saveArtifactToOutputStream(artifact,baos)
-        RequestBody body = RequestBody.create(MediaType.parse("application/octet-stream"), baos.toByteArray())
-        Response response = null
-        try {
-            OkHttpClient client = new OkHttpClient();
-            Request rq = new Request.Builder().method("POST", body).url(rundeckRepositoryEndpoint+ "/upload/artifact/${artifact.artifactMetaFileName}".toString()).build()
-            response = client.newCall(rq).execute()
-            rbatch.addMessage(ResponseMessage.success())
-        } catch(Exception ex) {
-            ex.printStackTrace()
-            rbatch.addMessage(new ResponseMessage(code: ResponseCodes.META_UPLOAD_FAILED))
-        } finally {
-            if(response) response.body().close()
-        }
-        return rbatch
+        throw new RuntimeException("Operation not supported")
     }
 
     @Override
     ResponseBatch uploadArtifact(final InputStream artifactInputStream) {
-        ArtifactFileset artifactFileset = ArtifactUtils.constructArtifactFileset(artifactInputStream)
-        ResponseBatch rbatch = new ResponseBatch()
-        rbatch.messages.addAll(BinaryValidator.validate(artifactFileset.artifact.artifactType, uploadTmp).messages)
-        if(rbatch.batchSucceeded()) {
-            rbatch.messages.addAll(saveNewArtifact(artifactFileset.artifact).messages)
-            rbatch.messages.addAll(
-                    uploadArtifactBinary(
-                            artifactFileset.artifact,
-                            artifactFileset.artifactBinary
-                    ).messages
-            )
-        }
-        return rbatch
-    }
-
-    ResponseBatch uploadArtifactBinary(final RundeckRepositoryArtifact artifact, final File binaryFile) {
-        ResponseBatch rbatch = new ResponseBatch()
-        RequestBody body = RequestBody.create(MediaType.parse("application/octet-stream"), binaryFile)
-        Response response = null
-        try {
-            Request rq = new Request.Builder().method("POST", body).url(rundeckRepositoryEndpoint+ "/upload/binary/${artifact.artifactBinaryFileName}".toString()).build()
-            response = client.newCall(rq).execute()
-            rbatch.addMessage(ResponseMessage.success())
-        } catch(Exception ex) {
-            ex.printStackTrace()
-            rbatch.addMessage(new ResponseMessage(code: ResponseCodes.BINARY_UPLOAD_FAILED))
-        } finally {
-            if(response) response.body().close()
-        }
-        return rbatch
+        throw new RuntimeException("Operation not supported")
     }
 
     @Override

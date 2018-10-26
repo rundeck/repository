@@ -17,5 +17,6 @@ package com.rundeck.repository.manifest.search
 
 
 interface MatchChecker<T, S> {
+    String getType()
     boolean matches(T checkValue, S searchValue)
 }

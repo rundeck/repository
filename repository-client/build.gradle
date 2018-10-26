@@ -6,7 +6,7 @@ plugins {
 
 group = 'com.rundeck.repository'
 archivesBaseName = 'repository-client'
-version = "0.8.3"
+version = "0.8.4"
 
 // In this section you declare where to find the dependencies of your project
 repositories {
@@ -32,6 +32,7 @@ dependencies {
     // Use the awesome Spock testing and specification framework
     testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
     testCompile 'com.github.rundeck:plugin-bootstrap:0.4.2'
+    testCompile "com.squareup.okhttp3:mockwebserver:3.9.1"
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {

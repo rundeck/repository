@@ -15,12 +15,20 @@
  */
 package com.rundeck.repository.client.manifest.search
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.rundeck.repository.manifest.search.MatchChecker
 import com.rundeck.repository.manifest.search.SearchTerm
 
 
 class StringSearchTerm implements SearchTerm<String> {
+    private static final String TERM_TYPE = "STR"
     String attributeName
     String searchValue
+
     MatchChecker matchChecker = new EqualsMatchChecker()
+
+    @Override
+    String getTermType() {
+        return TERM_TYPE
+    }
 }

@@ -18,6 +18,7 @@ package com.rundeck.repository.client.util
 import com.dtolabs.rundeck.core.plugins.JarPluginProviderLoader
 import com.dtolabs.rundeck.core.plugins.PluginMetadata
 import com.dtolabs.rundeck.core.plugins.metadata.PluginMeta
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -30,6 +31,8 @@ import com.rundeck.repository.artifact.RepositoryArtifact
 import com.rundeck.repository.artifact.SupportLevel
 import com.rundeck.repository.client.artifact.RundeckRepositoryArtifact
 import com.rundeck.repository.manifest.ArtifactManifest
+import com.rundeck.repository.manifest.ManifestEntry
+import com.rundeck.repository.manifest.search.ManifestSearch
 
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
@@ -158,6 +161,19 @@ class ArtifactUtils {
 
     static ArtifactManifest artifactManifestFromJson(String manifestJson) {
         mapper.readValue(manifestJson, ArtifactManifest)
+    }
+
+    static ManifestEntry createManifestEntryFromInputStream(InputStream inStream) {
+        mapper.readValue(inStream, ManifestEntry)
+    }
+
+    static Collection<ManifestEntry> createManifestEntryCollectionFromInputStream(InputStream inStream) {
+        TypeReference ref = new TypeReference<Collection<ManifestEntry>>() {}
+        mapper.readValue(inStream, ref)
+    }
+
+    static String manifestSearchToJson(ManifestSearch search) {
+        mapper.writeValueAsString(search)
     }
 
     static String niceArtifactTypeName(ArtifactType type) {

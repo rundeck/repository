@@ -19,6 +19,7 @@ import com.rundeck.plugin.template.FilesystemArtifactTemplateGenerator
 import com.rundeck.plugin.template.PluginType
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import org.rundeck.toolbelt.CommandOutput
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -32,7 +33,7 @@ class RepositoryTest extends Specification {
         MockWebServer httpServer = new MockWebServer()
         httpServer.start()
         httpServer.enqueue(new MockResponse().setResponseCode(200))
-        httpServer.enqueue(new MockResponse().setResponseCode(200))
+        httpServer.enqueue(new MockResponse().setResponseCode(200).setBody('{"msg":"done"}'))
         File buildDir = File.createTempDir()
         generator = new FilesystemArtifactTemplateGenerator()
         generator.generate("UploadScriptTest", PluginType.script,"FileCopier",buildDir.absolutePath)
@@ -57,8 +58,9 @@ class RepositoryTest extends Specification {
                 return new File(buildDir,"uploadscripttest.zip").absolutePath
             }
         }
+        CommandOutput out = Mock(CommandOutput)
         expect:
-        repository.submit(opts)
+        repository.submit(opts,out)
         httpServer.takeRequest().path == "/submit/script_plugin/cae0183f23a8/1.0.0"
         httpServer.takeRequest().path == "/save"
     }

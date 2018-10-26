@@ -20,4 +20,5 @@ interface SearchTerm<S> {
     String getAttributeName()
     S getSearchValue()
     MatchChecker getMatchChecker()
+    String getTermType()
 }

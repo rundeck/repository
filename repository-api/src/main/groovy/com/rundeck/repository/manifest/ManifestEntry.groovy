@@ -54,4 +54,25 @@ class ManifestEntry {
         }
         return fieldList.sort()
     }
+
+    boolean equals(final o) {
+        if (this.is(o)) {
+            return true
+        }
+        if (getClass() != o.class) {
+            return false
+        }
+
+        final ManifestEntry that = (ManifestEntry) o
+
+        if (id != that.id) {
+            return false
+        }
+
+        return true
+    }
+
+    int hashCode() {
+        return (id != null ? id.hashCode() : 0)
+    }
 }

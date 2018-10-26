@@ -20,6 +20,13 @@ import com.rundeck.repository.manifest.search.MatchChecker
 
 class CollectionContainsValueMatchChecker implements MatchChecker<Collection<String>, Collection<String>> {
 
+    private static final String TYPE = "contains"
+
+    @Override
+    String getType() {
+        return TYPE
+    }
+
     @Override
     boolean matches(final Collection<String> checkCollection, final Collection<String> searchValue) {
         if(!checkCollection) return false

@@ -15,12 +15,20 @@
  */
 package com.rundeck.repository.client.manifest.search
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.rundeck.repository.manifest.search.MatchChecker
 import com.rundeck.repository.manifest.search.SearchTerm
 
 
 class CollectionSearchTerm implements SearchTerm<Collection<String>> {
+    private static final String TERM_TYPE = "LIST"
     String attributeName
     Collection<String> searchValue
+
     MatchChecker matchChecker = new CollectionContainsValueMatchChecker()
+
+    @Override
+    String getTermType() {
+        return TERM_TYPE
+    }
 }

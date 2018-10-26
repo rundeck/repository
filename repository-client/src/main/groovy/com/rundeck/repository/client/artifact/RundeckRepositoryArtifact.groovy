@@ -99,4 +99,25 @@ class RundeckRepositoryArtifact implements RepositoryArtifact {
     String getArtifactBinaryFileName() {
         return ArtifactUtils.artifactBinaryFileName(id,version,artifactType.extension)
     }
+
+    boolean equals(final o) {
+        if (this.is(o)) {
+            return true
+        }
+        if (getClass() != o.class) {
+            return false
+        }
+
+        final RundeckRepositoryArtifact that = (RundeckRepositoryArtifact) o
+
+        if (id != that.id) {
+            return false
+        }
+
+        return true
+    }
+
+    int hashCode() {
+        return (id != null ? id.hashCode() : 0)
+    }
 }
