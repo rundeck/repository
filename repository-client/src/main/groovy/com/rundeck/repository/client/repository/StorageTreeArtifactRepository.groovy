@@ -91,12 +91,26 @@ class StorageTreeArtifactRepository implements ArtifactRepository {
     ResponseBatch uploadArtifact(final InputStream artifactInputStream) {
         ResponseBatch responseBatch = new ResponseBatch()
         ArtifactFileset artifactFileset = ArtifactUtils.constructArtifactFileset(artifactInputStream)
+        checkForRequiredProperty(responseBatch,artifactFileset.artifact.name,"Upload does not contain a plugin name. Please set the plugin name in the file.")
+        checkForRequiredProperty(responseBatch,artifactFileset.artifact.version,"Upload does not contain a plugin version. Please set the plugin version in the file.")
+        if(!responseBatch.batchSucceeded()) return responseBatch
+
         responseBatch.messages.addAll(BinaryValidator.validate(artifactFileset.artifact.artifactType, artifactFileset.artifactBinary).messages)
         if(!responseBatch.batchSucceeded()) return responseBatch
 
         responseBatch.messages.addAll(saveNewArtifact(artifactFileset.artifact).messages)
         responseBatch.messages.addAll(uploadArtifactBinary(artifactFileset.artifact, artifactFileset.artifactBinary.newInputStream()).messages)
         responseBatch
+    }
+
+    void checkForRequiredProperty(
+            final ResponseBatch responseBatch,
+            final def propVal,
+            final String failedValidationResponse
+    ) {
+        if(!propVal) {
+            responseBatch.addMessage(new ResponseMessage(code: ResponseCodes.BINARY_UPLOAD_FAILED,message: failedValidationResponse))
+        }
     }
 
     @Override
@@ -108,7 +122,8 @@ class StorageTreeArtifactRepository implements ArtifactRepository {
             ByteArrayOutputStream baos = new ByteArrayOutputStream()
             ArtifactUtils.saveArtifactToOutputStream(artifact,baos)
             def resource = DataUtil.withStream(new ByteArrayInputStream(baos.toByteArray()), meta, resourceFactory)
-            storageTree.createResource(artifactPath, resource)
+            def created = storageTree.createResource(artifactPath, resource)
+            created.contents.inputStream.close() //must close the input stream, otherwise it will leak
 
             response.messages.add(new ResponseMessage(code: ResponseCodes.SUCCESS))
             //recreate manifest
@@ -132,7 +147,8 @@ class StorageTreeArtifactRepository implements ArtifactRepository {
         Map meta = [:]
         try {
             def resource = DataUtil.withStream(artifactBinaryInputStream, meta, resourceFactory)
-            storageTree.createResource(binaryPath, resource)
+            def created = storageTree.createResource(binaryPath, resource)
+            created.contents.inputStream.close() //must close the input stream, otherwise it will leak
 
             response.messages.add(new ResponseMessage(code:ResponseCodes.SUCCESS))
         } catch (Exception ex) {

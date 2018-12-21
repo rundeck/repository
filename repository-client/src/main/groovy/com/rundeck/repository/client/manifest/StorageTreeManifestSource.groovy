@@ -32,7 +32,8 @@ class StorageTreeManifestSource implements ManifestSource {
         this.storageTree = storageTree
         this.manifestPath = manifestPath
         if(!storageTree.hasResource(manifestPath)) {
-            storageTree.createResource(manifestPath, DataUtil.withText("{}",[:],resourceFactory))
+            def resource = storageTree.createResource(manifestPath, DataUtil.withText("{}",[:],resourceFactory))
+            resource.contents.inputStream.close() //To prevent leaking resources
         }
     }
 
@@ -46,6 +47,7 @@ class StorageTreeManifestSource implements ManifestSource {
 
     @Override
     void saveManifest(final ArtifactManifest manifest) {
-        storageTree.updateResource(manifestPath,DataUtil.withText(ArtifactUtils.artifactManifestToJson(manifest),[:],resourceFactory))
+        def resource = storageTree.updateResource(manifestPath,DataUtil.withText(ArtifactUtils.artifactManifestToJson(manifest),[:],resourceFactory))
+        resource.contents.inputStream.close() //To prevent leaking resources
     }
 }

@@ -27,8 +27,9 @@ import com.rundeck.repository.client.util.ArtifactUtils
 import com.rundeck.repository.client.util.SupportLevelTypeDeserializer
 import com.rundeck.repository.client.util.SupportLevelTypeSerializer
 import com.rundeck.repository.manifest.ManifestEntry
+import groovy.transform.ToString
 
-
+@ToString
 class RundeckRepositoryArtifact implements RepositoryArtifact {
 
     String id

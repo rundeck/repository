@@ -20,6 +20,7 @@ import com.dtolabs.rundeck.core.plugins.PluginUtils
 import com.dtolabs.rundeck.core.plugins.metadata.PluginMeta
 import com.dtolabs.rundeck.core.plugins.metadata.ProviderDef
 
+import java.text.SimpleDateFormat
 import java.time.Instant
 
 
@@ -69,7 +70,13 @@ class PluginMetaToPluginMetadataAdaptor implements PluginMetadata {
     @Override
     Date getPluginDate() {
         if(!meta.date) return null
-        return new Date(Instant.parse(meta.date).toEpochMilli())
+        try {
+            return new Date(Instant.parse(meta.date).toEpochMilli())
+        } catch(Exception ex) {}
+        try {
+            return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX").parse(meta.date)
+        } catch(Exception ex) {}
+        return null
     }
 
     @Override

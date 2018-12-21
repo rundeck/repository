@@ -15,6 +15,7 @@
  */
 package com.rundeck.repository.client.util
 
+import com.dtolabs.rundeck.core.plugins.PluginUtils
 import com.rundeck.plugin.template.FilesystemArtifactTemplateGenerator
 import com.rundeck.plugin.template.PluginType
 import com.rundeck.repository.artifact.ArtifactType
@@ -77,5 +78,14 @@ class ArtifactUtilsTest extends Specification {
         ArtifactUtils.renameScriptFile(destFile).name == "myscriptplugin-0.1.0-SNAPSHOT.zip"
         ArtifactUtils.renameScriptFile(destFile2).name == "manualzipscriptplugin.zip"
 
+    }
+
+    def "get meta from uploaded legacy 1.2 plugin"() {
+        when:
+        def meta = ArtifactUtils.getMetaFromUploadedFile(new File(getClass().getClassLoader().getResource("legacy-plugins/src-refresh-plugin-1.2.jar").toURI()))
+        then:
+        meta.id == PluginUtils.generateShaIdFromName(meta.name)
+        meta.name == "Node Refresh Plugin"
+        meta.version == "3.0.1-SNAPSHOT"
     }
 }

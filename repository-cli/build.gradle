@@ -3,11 +3,14 @@ plugins {
     id 'application'
 }
 
-mainClassName = 'com.rundeck.repository.Verb'
+mainClassName = 'com.rundeck.repository.Repository'
 
 dependencies{
     compile 'com.github.rundeck.cli-toolbelt:toolbelt:0.2.2'
     compile 'com.github.rundeck.cli-toolbelt:toolbelt-jewelcli:0.2.2'
+    compile 'com.amazonaws:aws-java-sdk-cognitoidentity:1.11.459'
+    compile 'com.amazonaws:aws-java-sdk-cognitoidp:1.11.459'
+    compile 'com.nimbusds:srp6a:2.0.2'
     compile 'org.codehaus.groovy:groovy-all:2.4.13'
     compile project(':repository-client')
     testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
