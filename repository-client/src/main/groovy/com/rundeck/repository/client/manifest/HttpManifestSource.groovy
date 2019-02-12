@@ -18,14 +18,16 @@ package com.rundeck.repository.client.manifest
 import com.rundeck.repository.client.util.ArtifactUtils
 import com.rundeck.repository.manifest.ArtifactManifest
 import com.rundeck.repository.manifest.ManifestSource
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 
 class HttpManifestSource implements ManifestSource {
-
     private final URL httpManifestSourceUrl
 
     HttpManifestSource(final URL httpManifestSourceUrl) {
         this.httpManifestSourceUrl = httpManifestSourceUrl
+
     }
 
     @Override
@@ -35,4 +37,12 @@ class HttpManifestSource implements ManifestSource {
 
     @Override
     void saveManifest(final ArtifactManifest manifest) { }
+
+
+    @Override
+    public String toString() {
+        return "HttpManifestSource{" +
+               "httpManifestSourceUrl=" + httpManifestSourceUrl +
+               '}';
+    }
 }

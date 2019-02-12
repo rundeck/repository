@@ -25,15 +25,18 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.Response
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 
 class HttpManifestService implements ManifestService {
-
+    private static Logger LOG = LoggerFactory.getLogger(HttpManifestSource)
     private OkHttpClient client = new OkHttpClient();
     private final String serviceEndpoint
 
     HttpManifestService(String serviceEndpoint) {
         this.serviceEndpoint = serviceEndpoint
+        if(LOG.traceEnabled) LOG.trace("service endpoint: ${serviceEndpoint}")
     }
 
     @Override
@@ -46,16 +49,19 @@ class HttpManifestService implements ManifestService {
     ManifestEntry getEntry(final String artifactId) {
         Response response
         try {
+            if(LOG.traceEnabled) LOG.trace("/entry/${artifactId}")
             Request rq = new Request.Builder().method("GET", null).
                     url(serviceEndpoint + "/entry/${artifactId}".toString()).
                     build()
             response = client.newCall(rq).execute()
             if(response.isSuccessful())
                 return ArtifactUtils.createManifestEntryFromInputStream(response.body().byteStream())
-            else
+            else {
+                LOG.error("getEntry http error: ${response.body().string()}")
                 return null
+            }
         } catch(Exception ex) {
-            ex.printStackTrace()
+            LOG.error("getEntry error",ex)
         } finally {
             if(response) response.body().close()
         }
@@ -73,10 +79,12 @@ class HttpManifestService implements ManifestService {
             response = client.newCall(rq).execute()
             if(response.isSuccessful())
                 return ArtifactUtils.createManifestEntryCollectionFromInputStream(response.body().byteStream())
-            else
+            else {
+                LOG.error("listArtifacts http error: ${response.body().string()}")
                 return null
+            }
         } catch(Exception ex) {
-            ex.printStackTrace()
+            LOG.error("listArtifacts error",ex)
         } finally {
             if(response) response.body().close()
         }
@@ -95,10 +103,12 @@ class HttpManifestService implements ManifestService {
             response = client.newCall(rq).execute()
             if(response.isSuccessful())
                 return ArtifactUtils.createManifestEntryCollectionFromInputStream(response.body().byteStream())
-            else
+            else{
+                LOG.error("searchArtifacts http error: ${response.body().string()}")
                 return null
+            }
         } catch(Exception ex) {
-            ex.printStackTrace()
+            LOG.error("search artifacts error",ex)
         } finally {
             if(response) response.body().close()
         }

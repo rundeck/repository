@@ -24,16 +24,19 @@ import com.rundeck.repository.manifest.ManifestEntry
 import com.rundeck.repository.manifest.ManifestSource
 import com.rundeck.repository.manifest.search.ManifestSearch
 import com.rundeck.repository.manifest.search.SearchTerm
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 
 class MemoryManifestService implements ManifestService {
-
+    private static Logger LOG = LoggerFactory.getLogger(MemoryManifestService)
     private final URL manifestDatasource
     private final ManifestSource manifestSource
     private List<ManifestEntry> artifacts = []
 
     MemoryManifestService(ManifestSource mSource) {
         this.manifestSource = mSource
+        if(LOG.traceEnabled) LOG.trace(mSource.toString())
     }
 
     @Override
@@ -71,6 +74,7 @@ class MemoryManifestService implements ManifestService {
             ArtifactManifest newManifest = manifestSource.getManifest()
             artifacts.clear()
             newManifest.entries.each { artifacts.add(it) }
+            if(LOG.traceEnabled) LOG.trace("syncing manifest ${newManifest.entries.size()} - artifacts cached")
             return ResponseMessage.success()
         } catch(Exception ex) {
             ///log ex

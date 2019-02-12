@@ -141,13 +141,17 @@ class ArtifactUtils {
         mapper.readValue(parser, RundeckRepositoryArtifact)
     }
 
+    static RundeckRepositoryArtifact createArtifactFromJsonStream(InputStream artifactMetaStream) {
+        mapper.readValue(artifactMetaStream, RundeckRepositoryArtifact)
+    }
+
     static def saveArtifactToOutputStream(final RepositoryArtifact verbArtifact, final OutputStream targetStream) {
         YAMLFactory yamlFactory = new YAMLFactory()
         YAMLGenerator generator = yamlFactory.createGenerator(targetStream)
         mapper.writeValue(generator,verbArtifact)
     }
 
-    static def artifactToJson(final RepositoryArtifact verbArtifact) {
+    static String artifactToJson(final RepositoryArtifact verbArtifact) {
         mapper.writeValueAsString(verbArtifact)
     }
 

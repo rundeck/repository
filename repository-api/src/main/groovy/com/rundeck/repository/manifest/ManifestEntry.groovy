@@ -16,11 +16,15 @@
 package com.rundeck.repository.manifest
 
 import com.rundeck.repository.manifest.search.Searchable
+import groovy.transform.ToString
 
+@ToString
 class ManifestEntry {
     String id
     @Searchable
     String name
+    @Searchable
+    String display
     @Searchable
     String author
     @Searchable

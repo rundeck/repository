@@ -19,17 +19,5 @@ import spock.lang.Specification
 
 
 class RepositoryUtilsTest extends Specification {
-//    def "LoginAndGetAccessToken"() {
-//        expect:
-//        RepositoryUtils.loginAndGetAccessToken("tester5","Tester5!")
-//    }
 
-//    def "Test API Gateway Auth with Auth Token"() {
-//        when:
-//        String accessToken = RepositoryUtils.loginAndGetAccessToken("tester5","Tester5!")
-//        RepositoryUtils.callAPIGwWithAccessToken(accessToken)
-//
-//        then:
-//        noExceptionThrown()
-//    }
 }

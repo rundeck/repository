@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.rundeck.repository.manifest
+package com.rundeck.repository
 
-import groovy.transform.ToString
 
-@ToString
-class ArtifactManifest {
-    List<ManifestEntry> entries = []
+class RepoInfo {
+    String cognitoPool
+    String clientId
+    String region
 }

@@ -15,20 +15,35 @@
  */
 package com.rundeck.repository.client.repository
 
-
+import com.rundeck.repository.definition.RepositoryDefinition
+import com.rundeck.repository.manifest.ManifestEntry
+import com.rundeck.repository.manifest.ManifestService
+import org.bouncycastle.jce.provider.BouncyCastleProvider
 import spock.lang.Specification
+
+import java.security.Security
 
 
 class RundeckHttpRepositoryTest extends Specification {
-    def "UploadArtifactBinary"() {
+    def setup() {
+        Security.addProvider(new BouncyCastleProvider());
     }
 
-//    def "UploadArtifactMeta"() {
+//    def "Download and verify test"() {
 //        when:
-//        RundeckVerbRepository repository = new RundeckVerbRepository(rundeckVerbUploadEndpoint:"https://2n2gfj5lgh.execute-api.us-east-1.amazonaws.com/dev/upload")
-//        ResponseBatch batch = repository.uploadArtifact(getClass().getClassLoader().getResourceAsStream("rundeck-repository-artifact.yaml"))
+//        ManifestService manifestSvc = Stub(ManifestService) {
+//            getEntry() >> { new ManifestEntry(currentVersion: "1.0.2-SNAPSHOT")}
+//        }
+//        RepositoryDefinition repoDef = new RepositoryDefinition()
+//        repoDef.repositoryName = "OSS"
+//        repoDef.configProperties.rundeckRepoEndpoint = "https://api-stage.rundeck.com/spark/repo/oss"
+//        RundeckHttpRepository repository = new RundeckHttpRepository(repoDef)
+//        repository.manifestService = manifestSvc
+//        File tmpFile = File.createTempFile("tmp","file")
+//        tmpFile << repository.getArtifactBinary("36cc72f36df7","1.0.2-SNAPSHOT")
 //        then:
-//        batch.batchSucceeded()
+//        noExceptionThrown()
+//        tmpFile.size() == 3124821
 //
 //    }
 }
