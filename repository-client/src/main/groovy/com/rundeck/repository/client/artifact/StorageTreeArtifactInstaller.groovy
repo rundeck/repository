@@ -21,12 +21,15 @@ import com.rundeck.repository.ResponseCodes
 import com.rundeck.repository.ResponseMessage
 import com.rundeck.repository.artifact.ArtifactInstaller
 import com.rundeck.repository.artifact.RepositoryArtifact
+import com.rundeck.repository.client.repository.RundeckHttpRepository
 import com.rundeck.repository.client.util.ResourceFactory
 import org.rundeck.storage.data.DataUtil
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 
 class StorageTreeArtifactInstaller implements ArtifactInstaller {
-
+    private static Logger LOG = LoggerFactory.getLogger(StorageTreeArtifactInstaller)
     private static final ResourceFactory RESOURCE_FACTORY = new ResourceFactory()
     private StorageTree storageTree
 
@@ -55,6 +58,7 @@ class StorageTreeArtifactInstaller implements ArtifactInstaller {
             }
             batch.addMessage(ResponseMessage.success())
         } catch(Exception ex) {
+            LOG.error("Install failed", ex)
             batch.addMessage(new ResponseMessage(code: ResponseCodes.INSTALL_FAILED,message: ex.message))
         }
 

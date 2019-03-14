@@ -22,11 +22,15 @@ import com.rundeck.repository.ResponseMessage
 import com.rundeck.repository.api.RepositoryManager
 import com.rundeck.repository.artifact.ArtifactInstaller
 import com.rundeck.repository.artifact.RepositoryArtifact
+import com.rundeck.repository.client.repository.RundeckHttpRepository
 import com.rundeck.repository.definition.RepositoryDefinition
 import com.rundeck.repository.manifest.search.ManifestSearch
 import com.rundeck.repository.manifest.search.ManifestSearchResult
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class RundeckRepositoryClient implements RepositoryClient {
+    private static Logger LOG = LoggerFactory.getLogger(RundeckRepositoryClient)
 
     RepositoryManager repositoryManager
     ArtifactInstaller artifactInstaller
@@ -56,6 +60,7 @@ class RundeckRepositoryClient implements RepositoryClient {
             }
             response.messages.addAll(artifactInstaller.installArtifact(artifact,binarySourceInStream).messages)
         } catch(Exception ex) {
+            LOG.error("Install failed",ex)
             response.addMessage(new ResponseMessage(code: ResponseCodes.INSTALL_FAILED, message:ex))
         }
         return response

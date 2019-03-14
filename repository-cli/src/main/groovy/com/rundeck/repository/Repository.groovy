@@ -60,35 +60,68 @@ class Repository {
 
         String stage = stageOverride ? "-${stageOverride}" : ""
         String repoInfoBase = repoInfoUrlOverride ?: "https://api${stage}.rundeck.com/repo/v1/${repo}"
-        println repoInfoBase
-        RepoInfo repoInfo = RepositoryUtils.getRepoInfo(repoInfoBase+"/serviceInfo")
+
+        RepoInfo repoInfo = RepositoryUtils.getRepoInfo(repoInfoBase+"/service-info")
         if(!repoInfo) throw new Exception("Unable to obtain repository information")
-
-        String accessToken = RepositoryUtils.loginViaConsoleAndGetAccessToken(repoInfo)
-
-        String resp = RepositoryUtils.callAPIGwWithAccessToken(repoInfoBase+"/artifact",
-                                                               accessToken,
-                                                               '{"name":"'+artifactFileset.artifact.name+'","version":"'+artifactFileset.artifact.version+'"}')
+        String accessToken = tokenFromCache() ?:  RepositoryUtils.loginViaConsoleAndGetAccessToken(repoInfo)
+        String artifactUploadUrl = repoInfoBase + "/artifact"
+        String artifactUploadPayload = '{"name":"' + artifactFileset.artifact.name +
+                                       '","version":"' + artifactFileset.artifact.version + '"}'
+        String resp = ""
+        try {
+            resp = getUploadUrls(artifactUploadUrl,accessToken,artifactUploadPayload)
+        } catch(Exception ex) {
+            ex.printStackTrace()
+            //if failed with token exception try login and call again
+            accessToken = RepositoryUtils.loginViaConsoleAndGetAccessToken(repoInfo)
+            resp = getUploadUrls(artifactUploadUrl,accessToken,artifactUploadPayload)
+        }
         def signed = mapper.readValue(resp,Map)
+        if(signed.submissionId) {
+            output.output("Submission Id: " + signed.submissionId)
+            //output.output("Track the progress of this submission online at: https://online.rundeck.com/")
+        }
+        UploadOperationResult metaResult = null
+        UploadOperationResult binaryResult = null
 
         if(signed.metaUrl) {
             File tmp = File.createTempFile("tmp","meta")
             tmp << ArtifactUtils.artifactToJson(artifactFileset.artifact)
-            RepositoryUtils.upload(
+            metaResult = RepositoryUtils.upload(
                     signed.metaUrl,
                     tmp.absolutePath,
                     'application/json'
             )
         }
-        if(signed.binaryUrl) {
-            RepositoryUtils.upload(
+        if(metaResult?.successful && signed.binaryUrl) {
+            binaryResult = RepositoryUtils.upload(
                     signed.binaryUrl,
                     artifactFile.absolutePath
             )
         }
 
-        output.output("Artifact uploaded successfully")
+        if(metaResult?.successful && binaryResult?.successful) {
+            output.output("Artifact uploaded successfully")
+        } else {
+            output.error("Artifact failed to upload")
+            if(!metaResult?.successful && metaResult?.msg) output.output(metaResult.msg)
+            if(!metaResult?.successful && metaResult?.msg) output.output(binaryResult.msg)
+        }
 
+    }
+
+    private String tokenFromCache() {
+        File tokenCache = new File(System.getProperty("user.home")+RepositoryUtils.TOKEN_CACHE_PATH)
+        if(tokenCache.exists()) return tokenCache.text
+        return null
+    }
+
+    private String getUploadUrls(artifactUploadUrl,accessToken,payload) {
+        return RepositoryUtils.callAPIGwWithAccessToken(
+                artifactUploadUrl,
+                accessToken,
+                payload
+        )
     }
 
     interface SubmitOpts {

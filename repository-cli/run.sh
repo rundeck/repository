@@ -5,5 +5,5 @@ if [ "$1" == "-refresh" ] ; then
     tar -xf build/distributions/repository-cli.tar
     exit 0
 fi
-export REPOSITORY_CLI_OPTS="-Dstage=stage"
+#export REPOSITORY_CLI_OPTS="-Dstage=stage"
 ./repository-cli/bin/repository-cli $@

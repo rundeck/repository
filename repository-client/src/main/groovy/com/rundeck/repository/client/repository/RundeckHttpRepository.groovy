@@ -37,14 +37,18 @@ class RundeckHttpRepository implements ArtifactRepository {
     private OkHttpClient client = new OkHttpClient();
     private static ObjectMapper mapper = new ObjectMapper()
 
-    private ByteArrayInputStream cachedPubKeyStream = null
+    private byte[] cachedPubKeyStream = null
 
     RepositoryDefinition repositoryDefinition
     ManifestService manifestService
     String rundeckRepositoryEndpoint
 
     RundeckHttpRepository(RepositoryDefinition repoDef) {
-        if(!repoDef.configProperties.rundeckRepoEndpoint) throw new Exception("Rundeck repository endpoint must be provided by setting configProperties.rundeckRepoEndpoint in repository definition.")
+        if (!repoDef.configProperties.rundeckRepoEndpoint) {
+            throw new Exception(
+                    "Rundeck repository endpoint must be provided by setting configProperties.rundeckRepoEndpoint in repository definition."
+            )
+        }
         this.rundeckRepositoryEndpoint = repoDef.configProperties.rundeckRepoEndpoint
         this.repositoryDefinition = repoDef
         this.manifestService = new HttpManifestService(repoDef.configProperties.rundeckRepoEndpoint)
@@ -62,7 +66,9 @@ class RundeckHttpRepository implements ArtifactRepository {
             def manifestEntry = manifestService.getEntry(artifactId)
             String artifactVer = version ?: manifestEntry.currentVersion
             String artifactUrl = rundeckRepositoryEndpoint+ "/artifact/${artifactId}/${artifactVer}"
-            if(LOG.traceEnabled) LOG.trace("getArtifact from: " + artifactUrl)
+            if (LOG.traceEnabled) {
+                LOG.trace("getArtifact from: " + artifactUrl)
+            }
             Request rq = new Request.Builder().get().url(artifactUrl).build()
             response = client.newCall(rq).execute()
             if(response.successful) {
@@ -71,7 +77,9 @@ class RundeckHttpRepository implements ArtifactRepository {
                 LOG.error("getArtifact http error: " + response.body().string())
             }
         } finally {
-            if(response) response.body().close()
+            if (response) {
+                response.body().close()
+            }
         }
     }
 
@@ -80,7 +88,9 @@ class RundeckHttpRepository implements ArtifactRepository {
         ManifestEntry entry = manifestService.getEntry(artifactId)
         String artifactVer = version ?: entry.currentVersion
         String artifactUrl = rundeckRepositoryEndpoint+ "/binary/${artifactId}/${artifactVer}"
-        if(LOG.traceEnabled) LOG.trace("getBinary from: " + artifactUrl)
+        if (LOG.traceEnabled) {
+            LOG.trace("getBinary from: " + artifactUrl)
+        }
         File tmp = File.createTempFile("sigchk", "bin")
         Request rqUrls = new Request.Builder().get().url(artifactUrl).build()
         Response rspUrls = null
@@ -89,7 +99,9 @@ class RundeckHttpRepository implements ArtifactRepository {
         try {
             rspUrls = client.newCall(rqUrls).execute()
             def urls = mapper.readValue(rspUrls.body().string(), Map)
-            if (LOG.traceEnabled) LOG.trace("binary urls: " + urls.toString())
+            if (LOG.traceEnabled) {
+                LOG.trace("binary urls: " + urls.toString())
+            }
             Request rqSig = new Request.Builder().get().url(urls.binarySigUrl).build()
             rspSig = client.newCall(rqSig).execute()
             ByteArrayInputStream sigStream = new ByteArrayInputStream(rspSig.body().bytes())
@@ -101,28 +113,43 @@ class RundeckHttpRepository implements ArtifactRepository {
                 throw new Exception("Cannot verify downloaded file.")
             }
         } finally {
-            if(rspUrls) rspUrls.close()
-            if(rspSig) rspSig.close()
-            if(rspBin) rspBin.close()
+            if (rspUrls) {
+                rspUrls.close()
+            }
+            if (rspSig) {
+                rspSig.close()
+            }
+            if (rspBin) {
+                rspBin.close()
+            }
         }
 
         return tmp.newInputStream()
     }
 
     ByteArrayInputStream getRundeckPublicKey() {
-        if(cachedPubKeyStream) return cachedPubKeyStream
+        if (cachedPubKeyStream) {
+            return new ByteArrayInputStream(cachedPubKeyStream)
+        }
         Request rqKey = new Request.Builder().method("GET",null).url(rundeckRepositoryEndpoint+"/verification-key").build()
         Response rspKey = null
         try {
             rspKey = client.newCall(rqKey).execute()
-            if (rspKey.successful) cachedPubKeyStream = new ByteArrayInputStream(rspKey.body().bytes())
-            else {
+            if (rspKey.successful) {
+                cachedPubKeyStream = rspKey.body().bytes()
+            } else {
                 LOG.error("getRundeckPublicKey http failure: ${rspKey.body().string()}")
+                throw new Exception(
+                        "Unable to verify artifact. Public Key could not be loaded." +
+                        "Please ensure data from: ${rundeckRepositoryEndpoint}/verification-key can be loaded"
+                )
             }
         } finally {
-            if(rspKey) rspKey.close()
+            if (rspKey) {
+                rspKey.close()
+            }
         }
-        return cachedPubKeyStream
+        return new ByteArrayInputStream(cachedPubKeyStream)
     }
 
     @Override

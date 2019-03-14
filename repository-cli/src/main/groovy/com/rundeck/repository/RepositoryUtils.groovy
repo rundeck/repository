@@ -24,12 +24,13 @@ import okhttp3.RequestBody
 import okhttp3.Response
 
 class RepositoryUtils {
+    public static final String TOKEN_CACHE_PATH = "/.repoCliTkCache"
     static ObjectMapper mapper = new ObjectMapper()
 
     static String loginViaConsoleAndGetAccessToken(RepoInfo info) {
 
         Console console = System.console()
-        console.println("Rundeck Online Login")
+        console.println("Rundeck Login")
         String un = console.readLine("username: ")
         String pwd = new String(console.readPassword("password: "))
 
@@ -39,7 +40,16 @@ class RepositoryUtils {
 
     static String loginAndGetAccessToken(String cognitoPoolId, String clientId, String region, String un, String pwd) {
         AuthenticationHelper helper = new AuthenticationHelper(cognitoPoolId, clientId, region, "");
-        return helper.doSRPAuthentication(un,pwd).getIdToken()
+        String token = helper.doSRPAuthentication(un,pwd).getIdToken()
+        cacheToken(token)
+        return token
+    }
+
+    static private cacheToken(String token) {
+        File cacheFile = new File(System.getProperty("user.home")+TOKEN_CACHE_PATH)
+        def writer = cacheFile.newWriter(false)
+        writer.append(token)
+        writer.flush()
     }
 
     static String callAPIGwWithAccessToken(String url, String accessToken, String payload) {
@@ -55,26 +65,27 @@ class RepositoryUtils {
         try {
             resp = client.newCall(rq).execute()
             out = resp.body().string()
-            println resp.code()
+            if(!resp.successful) throw new Exception("Call Failed: " + out)
         } finally {
             if(resp) resp.close()
         }
         return out
     }
 
-    static String upload(String url, String absoluteFilePath, String contentType = 'application/octet-stream') {
+    static UploadOperationResult upload(String url, String absoluteFilePath, String contentType = 'application/octet-stream') {
         OkHttpClient client = new OkHttpClient()
         def rb = new Request.Builder().url(url)
         rb.put(RequestBody.create(MediaType.parse(contentType),new File(absoluteFilePath)))
         Response rsp = null
-        String rmsg = "ok"
+        UploadOperationResult result = new UploadOperationResult()
         try {
             rsp = client.newCall(rb.build()).execute()
-            rmsg = rsp.body().string()
+            result.status = rsp.code()
+            result.msg = rsp.body().string()
         } finally {
             if(rsp) rsp.close()
         }
-        return rmsg
+        return result
     }
 
     static RepoInfo getRepoInfo(final String repoInfoUrl) {
@@ -85,7 +96,6 @@ class RepositoryUtils {
         try {
             resp = client.newCall(rq).execute()
             repoInfo = mapper.readValue(resp.body().string(),RepoInfo)
-            println resp.code()
         } finally {
             if(resp) resp.close()
         }

@@ -15,9 +15,13 @@
  */
 package com.rundeck.repository.client.repository
 
+import com.rundeck.repository.client.RundeckRepositoryClient
 import com.rundeck.repository.definition.RepositoryDefinition
 import com.rundeck.repository.manifest.ManifestEntry
 import com.rundeck.repository.manifest.ManifestService
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.RecordedRequest
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import spock.lang.Specification
 
@@ -28,6 +32,36 @@ class RundeckHttpRepositoryTest extends Specification {
     def setup() {
         Security.addProvider(new BouncyCastleProvider());
     }
+
+    def "Ensure Public Key Caching"() {
+        setup:
+        MockWebServer httpServer = new MockWebServer()
+        httpServer.start()
+        httpServer.enqueue(new MockResponse().setResponseCode(200).setBody(getClass().getClassLoader().getResourceAsStream("gpg/pubkey.key").text))
+        String endpoint = httpServer.url("repo/v1/oss").toString()
+
+        when:
+        println endpoint
+        RepositoryDefinition repoDef = new RepositoryDefinition()
+        repoDef.repositoryName = "OSS"
+        repoDef.configProperties.rundeckRepoEndpoint = endpoint
+        RundeckHttpRepository repo = new RundeckHttpRepository(repoDef)
+        def pubKey = repo.getRundeckPublicKey()
+        RecordedRequest r = httpServer.takeRequest()
+        def pubKeyFromCache = repo.getRundeckPublicKey()
+
+        then:
+        r.path == "/repo/v1/oss/verification-key"
+        pubKey
+        pubKeyFromCache
+        pubKey != pubKeyFromCache
+        pubKey.text == pubKeyFromCache.text
+
+    }
+
+    //def "Attempt to download but no binary url"() {
+
+    //}
 
 //    def "Download and verify test"() {
 //        when:
