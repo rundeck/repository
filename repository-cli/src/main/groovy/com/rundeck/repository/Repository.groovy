@@ -130,7 +130,7 @@ class Repository {
 
     }
 
-    @Command(description = "Create Storage Tree Repository")
+    @Command(description = "Create a local Storage Tree Repository from plugins in a directory")
     void createRepo(CreateRepoOpts opts, CommandOutput output) {
         File inputDir = new File(opts.getInputDir())
         File outputBaseDir = new File(opts.getOutputDir())
