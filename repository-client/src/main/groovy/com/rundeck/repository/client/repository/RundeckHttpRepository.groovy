@@ -102,6 +102,7 @@ class RundeckHttpRepository implements ArtifactRepository {
             if (LOG.traceEnabled) {
                 LOG.trace("binary urls: " + urls.toString())
             }
+            if(!urls.binarySigUrl || !urls.binaryUrl) throw new Exception("Binary not found")
             Request rqSig = new Request.Builder().get().url(urls.binarySigUrl).build()
             rspSig = client.newCall(rqSig).execute()
             ByteArrayInputStream sigStream = new ByteArrayInputStream(rspSig.body().bytes())

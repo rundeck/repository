@@ -16,6 +16,9 @@
 package com.rundeck.repository.client.repository
 
 import com.rundeck.repository.client.RundeckRepositoryClient
+import com.rundeck.repository.client.TestUtils
+import com.rundeck.repository.client.manifest.MemoryManifestService
+import com.rundeck.repository.client.manifest.MemoryManifestSource
 import com.rundeck.repository.definition.RepositoryDefinition
 import com.rundeck.repository.manifest.ManifestEntry
 import com.rundeck.repository.manifest.ManifestService
@@ -41,7 +44,6 @@ class RundeckHttpRepositoryTest extends Specification {
         String endpoint = httpServer.url("repo/v1/oss").toString()
 
         when:
-        println endpoint
         RepositoryDefinition repoDef = new RepositoryDefinition()
         repoDef.repositoryName = "OSS"
         repoDef.configProperties.rundeckRepoEndpoint = endpoint
@@ -59,25 +61,32 @@ class RundeckHttpRepositoryTest extends Specification {
 
     }
 
-    //def "Attempt to download but no binary url"() {
+    def "Attempt to download but no binary url"() {
+        setup:
+        ManifestEntry abcPlugin = TestUtils.createEntry("ABCPlugin")
+        String artifactId = abcPlugin.id
+        MockWebServer httpServer = new MockWebServer()
+        httpServer.start()
+        httpServer.enqueue(new MockResponse().setResponseCode(200).setBody("{\"error\":\"Objects not found\"}"))
+        String endpoint = httpServer.url("").toString()
 
-    //}
+        when:
+        RepositoryDefinition repoDef = new RepositoryDefinition()
+        repoDef.repositoryName = "OSS"
+        repoDef.configProperties.rundeckRepoEndpoint = endpoint
+        MemoryManifestSource msource = new MemoryManifestSource()
+        msource.manifest.entries.add(abcPlugin)
+        RundeckHttpRepository repo = new RundeckHttpRepository(repoDef)
+        repo.manifestService = new MemoryManifestService(msource)
+        repo.manifestService.syncManifest()
+        def binStream = repo.getArtifactBinary(artifactId)
 
-//    def "Download and verify test"() {
-//        when:
-//        ManifestService manifestSvc = Stub(ManifestService) {
-//            getEntry() >> { new ManifestEntry(currentVersion: "1.0.2-SNAPSHOT")}
-//        }
-//        RepositoryDefinition repoDef = new RepositoryDefinition()
-//        repoDef.repositoryName = "OSS"
-//        repoDef.configProperties.rundeckRepoEndpoint = "https://api-stage.rundeck.com/spark/repo/oss"
-//        RundeckHttpRepository repository = new RundeckHttpRepository(repoDef)
-//        repository.manifestService = manifestSvc
-//        File tmpFile = File.createTempFile("tmp","file")
-//        tmpFile << repository.getArtifactBinary("36cc72f36df7","1.0.2-SNAPSHOT")
-//        then:
-//        noExceptionThrown()
-//        tmpFile.size() == 3124821
-//
-//    }
+        then:
+        Exception ex = thrown()
+        ex.message == "Binary not found"
+
+
+
+    }
+
 }
