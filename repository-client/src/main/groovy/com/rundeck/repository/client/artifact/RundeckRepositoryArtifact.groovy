@@ -86,7 +86,7 @@ class RundeckRepositoryArtifact implements RepositoryArtifact {
     @Override
     @JsonIgnore
     String getInstallationFileName() {
-        return artifactType == ArtifactType.SCRIPT_PLUGIN && originalFilename ? originalFilename : ArtifactUtils.sanitizedPluginName(name).toLowerCase()+ "."+ artifactType.extension
+        return originalFilename ? originalFilename : ArtifactUtils.sanitizedPluginName(name).toLowerCase()+ "."+ artifactType.extension
     }
 
     @Override

@@ -33,6 +33,8 @@ import com.rundeck.repository.client.artifact.RundeckRepositoryArtifact
 import com.rundeck.repository.manifest.ArtifactManifest
 import com.rundeck.repository.manifest.ManifestEntry
 import com.rundeck.repository.manifest.search.ManifestSearch
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
@@ -41,6 +43,7 @@ import java.util.zip.ZipFile
 
 
 class ArtifactUtils {
+    private static Logger LOG = LoggerFactory.getLogger(ArtifactUtils)
     private static ObjectMapper mapper = new ObjectMapper()
     private static File unusedCacheDir = File.createTempDir()
     static  {
@@ -50,11 +53,15 @@ class ArtifactUtils {
     }
 
     static ArtifactFileset constructArtifactFileset(InputStream artifactStream) {
-        ArtifactFileset fileset = new ArtifactFileset()
         File uploadTmp = File.createTempFile("tmp","artifact")
         uploadTmp << artifactStream
-        fileset.artifact = getMetaFromUploadedFile(uploadTmp)
-        fileset.artifactBinary = uploadTmp
+        return constructArtifactFileset(uploadTmp)
+    }
+
+    static ArtifactFileset constructArtifactFileset(File artifactFile) {
+        ArtifactFileset fileset = new ArtifactFileset()
+        fileset.artifact = getMetaFromUploadedFile(artifactFile)
+        fileset.artifactBinary = artifactFile
         fileset
     }
 
@@ -71,9 +78,16 @@ class ArtifactUtils {
                         unusedCacheDir
                 )
                 artifact = createArtifactFromPluginMetadata(jarLoader)
-                artifact.providesServices = []
+                artifact.providesServices = [] as Set
                 jarLoader.listProviders().each {
                     artifact.providesServices.add(it.service)
+                }
+                if(artifact.name.endsWith(".jar")) {
+                    LOG.warn("Jar artifact: ${artifact.name}. Please make sure you have specified a 'Rundeck-Plugin-Name' attribute in the jar manifest.")
+                    //No plugin name was specified in the jar manifest
+                    //so we need to preserve the original filename for install/uninstall to work right
+                    //This happens on legacy plugins.
+                    artifact.originalFilename = artifact.name
                 }
                 return artifact
             } catch (Exception ex) {
@@ -128,7 +142,7 @@ class ArtifactUtils {
         def meta = mapper.readValue(parser, PluginMeta)
         def plugin = new PluginMetaToPluginMetadataAdaptor(meta)
         def artifact = createArtifactFromPluginMetadata(plugin)
-        artifact.providesServices = []
+        artifact.providesServices = [] as Set
         plugin.pluginDefs().each {
             artifact.providesServices.add(it.service)
         }

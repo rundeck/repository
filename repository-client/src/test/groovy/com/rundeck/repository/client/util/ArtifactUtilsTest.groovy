@@ -15,6 +15,7 @@
  */
 package com.rundeck.repository.client.util
 
+import com.dtolabs.rundeck.core.plugins.JarPluginProviderLoader
 import com.dtolabs.rundeck.core.plugins.PluginUtils
 import com.rundeck.plugin.template.FilesystemArtifactTemplateGenerator
 import com.rundeck.plugin.template.PluginType
@@ -25,6 +26,7 @@ import spock.lang.Specification
 
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+import java.util.jar.JarFile
 
 
 class ArtifactUtilsTest extends Specification {
@@ -87,5 +89,17 @@ class ArtifactUtilsTest extends Specification {
         meta.id == PluginUtils.generateShaIdFromName(meta.name)
         meta.name == "Node Refresh Plugin"
         meta.version == "3.0.1-SNAPSHOT"
+    }
+
+    def "get meta from plugin with no name or version specified"() {
+        when:
+        File jarFile = new File(getClass().getClassLoader().getResource("legacy-plugins/irc-notification-1.0.0.jar").toURI())
+        JarFile jar = new JarFile(jarFile)
+        def meta = ArtifactUtils.getMetaFromUploadedFile(jarFile)
+        then:
+        meta.id == PluginUtils.generateShaIdFromName(jar.getManifest().getMainAttributes().getValue(JarPluginProviderLoader.RUNDECK_PLUGIN_CLASSNAMES))
+        meta.name == "irc-notification-1.0.0.jar"
+        meta.originalFilename == "irc-notification-1.0.0.jar"
+        meta.version == "1.0.0"
     }
 }

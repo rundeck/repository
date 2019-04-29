@@ -40,6 +40,8 @@ import org.rundeck.toolbelt.input.jewelcli.JewelInput
 
 @SubCommand
 class Repository {
+    private static final String UNAUTHORIZED_MSG = "\"message\":\"Unauthorized\""
+    private static final String EXPIRED_MSG = "\"message\":\"The incoming token has expired\""
     private static ObjectMapper mapper = new ObjectMapper()
     private String repoInfoUrlOverride = System.getProperty("repoInfoUrl")
     private String repo = System.getProperty("repo","oss")
@@ -54,7 +56,7 @@ class Repository {
 
         File artifactFile = new File(submitOpts.getArtifactFilePath())
         if(!artifactFile.exists()) throw new Exception("Artifact file: ${submitOpts.getArtifactFilePath()} cannot be found")
-        ArtifactFileset artifactFileset = ArtifactUtils.constructArtifactFileset(artifactFile.newInputStream())
+        ArtifactFileset artifactFileset = ArtifactUtils.constructArtifactFileset(artifactFile)
         if(!artifactFileset.artifact.name) throw new Exception("Plugin metadata must contain the plugin name.")
         if(!artifactFileset.artifact.version) throw new Exception("Plugin metadata must contain the plugin version.")
 
@@ -65,20 +67,28 @@ class Repository {
         if(!repoInfo) throw new Exception("Unable to obtain repository information")
         String accessToken = tokenFromCache() ?:  RepositoryUtils.loginViaConsoleAndGetAccessToken(repoInfo)
         String artifactUploadUrl = repoInfoBase + "/artifact"
-        String artifactUploadPayload = '{"name":"' + artifactFileset.artifact.name +
-                                       '","version":"' + artifactFileset.artifact.version + '"}'
+
+        def artifactUploadPayload = [id:artifactFileset.artifact.id,
+                                     name:artifactFileset.artifact.name,
+                                     version: artifactFileset.artifact.version,
+                                     extension: artifactFileset.artifact.artifactType.extension
+                                    ]
         String resp = ""
         try {
-            resp = getUploadUrls(artifactUploadUrl,accessToken,artifactUploadPayload)
+            resp = getUploadUrls(artifactUploadUrl,accessToken,mapper.writeValueAsString(artifactUploadPayload))
         } catch(Exception ex) {
-            ex.printStackTrace()
-            //if failed with token exception try login and call again
-            accessToken = RepositoryUtils.loginViaConsoleAndGetAccessToken(repoInfo)
-            resp = getUploadUrls(artifactUploadUrl,accessToken,artifactUploadPayload)
+            if(ex.message.contains(UNAUTHORIZED_MSG) || ex.message.contains(EXPIRED_MSG)) {
+                //if failed with token exception try login and call again
+                accessToken = RepositoryUtils.loginViaConsoleAndGetAccessToken(repoInfo)
+                resp = getUploadUrls(artifactUploadUrl,accessToken,mapper.writeValueAsString(artifactUploadPayload))
+            } else {
+                throw ex
+            }
         }
         def signed = mapper.readValue(resp,Map)
         if(signed.submissionId) {
-            output.output("Submission Id: " + signed.submissionId)
+            output.output("Submitting ${artifactFileset.artifact.id} : ${artifactFileset.artifact.name} : ${artifactFileset.artifact.version}")
+            //output.output("Submission Id: " + signed.submissionId)
             //output.output("Track the progress of this submission online at: https://online.rundeck.com/")
         }
         UploadOperationResult metaResult = null
@@ -179,8 +189,8 @@ class Repository {
 
     @Command(description = "Print the ID of an artifact")
     void identify(IdentifyOpts opts, CommandOutput output) {
-        def fileset = ArtifactUtils.constructArtifactFileset(new File(opts.artifactFilePath).newInputStream())
-        output.output(fileset.artifact.name + " : " + fileset.artifact.id)
+        def fileset = ArtifactUtils.constructArtifactFileset(new File(opts.artifactFilePath))
+        output.output(fileset.artifact.id + " : " + fileset.artifact.name + " : " + fileset.artifact.version)
     }
 
     interface IdentifyOpts {
