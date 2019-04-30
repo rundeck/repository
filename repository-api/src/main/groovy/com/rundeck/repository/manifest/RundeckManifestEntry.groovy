@@ -20,7 +20,11 @@ class RundeckManifestEntry extends ManifestEntry {
     Map record = [:]
 
     String getId() {
-        return record.object_id ?: record.post_id
+        return record.post_id
+    }
+
+    String getInstallId() {
+        return record.object_id
     }
 
     String getName() {
@@ -46,11 +50,11 @@ class RundeckManifestEntry extends ManifestEntry {
     String getSourceLink() {
         return record.source_link
     }
-//
-//    String getArtifactType() {
-//        return artifactType
-//    }
-//
+
+    String getArtifactType() {
+        return record.artifact_type
+    }
+
     String getSupport() {
         return record.taxonomies?.plugin_support_type?.join(" ")
     }
@@ -70,6 +74,8 @@ class RundeckManifestEntry extends ManifestEntry {
     String getBinaryLink() {
         return record.binary_link
     }
+
+    boolean getInstallable() { return record.object_id }
 
 //    Long getLastRelease() {
 //        return

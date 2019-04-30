@@ -18,6 +18,8 @@ package com.rundeck.repository.client.manifest
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.common.cache.Cache
+import com.google.common.cache.CacheBuilder
 import com.rundeck.repository.ResponseMessage
 import com.rundeck.repository.client.util.ArtifactUtils
 import com.rundeck.repository.manifest.ManifestEntry
@@ -32,16 +34,24 @@ import okhttp3.Response
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import java.util.concurrent.TimeUnit
+
 
 class RundeckOfficialManifestService implements ManifestService {
-    private static Logger LOG = LoggerFactory.getLogger(HttpManifestSource)
-    private static ObjectMapper mapper = new ObjectMapper()
+    private static final String ARTIFACT_LIST = "artifact-list"
+    private static final Logger LOG = LoggerFactory.getLogger(HttpManifestSource)
+    private static final ObjectMapper mapper = new ObjectMapper()
     private OkHttpClient client = new OkHttpClient();
     private final String serviceEndpoint
+    private Cache<String,Collection<ManifestEntry>> cache
 
-    RundeckOfficialManifestService(String serviceEndpoint) {
+    RundeckOfficialManifestService(String serviceEndpoint, long cacheListTime, TimeUnit cacheUnit) {
         this.serviceEndpoint = serviceEndpoint
         if(LOG.traceEnabled) LOG.trace("service endpoint: ${serviceEndpoint}")
+        cache =CacheBuilder.newBuilder()
+                .maximumSize(1)
+                .expireAfterWrite(cacheListTime, cacheUnit)
+                .build()
     }
 
     @Override
@@ -75,6 +85,9 @@ class RundeckOfficialManifestService implements ManifestService {
 
     @Override
     Collection<ManifestEntry> listArtifacts(final Integer offset, final Integer max) {
+        Collection<ManifestEntry> artifactList = cache.getIfPresent(ARTIFACT_LIST)
+        if(artifactList != null) return artifactList
+        artifactList = []
         Response response
         try {
             Request rq = new Request.Builder()
@@ -84,12 +97,13 @@ class RundeckOfficialManifestService implements ManifestService {
             response = client.newCall(rq).execute()
             if(response.isSuccessful()) {
                 def map = mapper.readValue(response.body().byteStream(),HashMap)
-                Collection<ManifestEntry> artifactList = []
+
                 map.hits.each { hit ->
                     RundeckManifestEntry entry = new RundeckManifestEntry()
                     entry.record = hit
                     artifactList.add(entry)
                 }
+                cache.put(ARTIFACT_LIST,artifactList)
                 return artifactList
             } else {
                 LOG.error("listArtifacts http error: ${response.body().string()}")

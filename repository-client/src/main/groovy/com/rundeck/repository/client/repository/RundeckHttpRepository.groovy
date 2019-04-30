@@ -32,6 +32,8 @@ import okhttp3.Response
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import java.util.concurrent.TimeUnit
+
 
 class RundeckHttpRepository implements ArtifactRepository {
     private static final String REPO_ENDPOINT = "https://api.rundeck.com/repo/v1/oss"
@@ -49,7 +51,7 @@ class RundeckHttpRepository implements ArtifactRepository {
     RundeckHttpRepository(RepositoryDefinition repoDef) {
         this.rundeckRepositoryEndpoint = repoDef.configProperties.staging == true ? REPO_STAGING_ENDPOINT : REPO_ENDPOINT
         this.repositoryDefinition = repoDef
-        this.manifestService = new RundeckOfficialManifestService(this.rundeckRepositoryEndpoint)
+        this.manifestService = new RundeckOfficialManifestService(this.rundeckRepositoryEndpoint, 24, TimeUnit.HOURS)
     }
 
     @Override

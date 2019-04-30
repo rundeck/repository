@@ -30,6 +30,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider
 import spock.lang.Specification
 
 import java.security.Security
+import java.util.concurrent.TimeUnit
 
 
 class RundeckHttpRepositoryTest extends Specification {
@@ -49,7 +50,7 @@ class RundeckHttpRepositoryTest extends Specification {
         repoDef.repositoryName = "OSS"
         RundeckHttpRepository repo = new RundeckHttpRepository(repoDef)
         repo.rundeckRepositoryEndpoint = endpoint
-        repo.manifestService = new RundeckOfficialManifestService(endpoint)
+        repo.manifestService = new RundeckOfficialManifestService(endpoint, 1, TimeUnit.HOURS)
         def pubKey = repo.getRundeckPublicKey()
         RecordedRequest r = httpServer.takeRequest()
         def pubKeyFromCache = repo.getRundeckPublicKey()

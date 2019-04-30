@@ -68,7 +68,7 @@ class ManifestEntry {
 
         final ManifestEntry that = (ManifestEntry) o
 
-        if (id != that.id) {
+        if (getId() != that.getId()) {
             return false
         }
 
@@ -76,6 +76,9 @@ class ManifestEntry {
     }
 
     int hashCode() {
-        return (id != null ? id.hashCode() : 0)
+        return (getId() != null ? getId().hashCode() : 0)
     }
+
+    String getInstallId() { return id }
+    boolean getInstallable() { return true }
 }
