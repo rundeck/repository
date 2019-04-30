@@ -19,6 +19,7 @@ import com.rundeck.repository.client.RundeckRepositoryClient
 import com.rundeck.repository.client.TestUtils
 import com.rundeck.repository.client.manifest.MemoryManifestService
 import com.rundeck.repository.client.manifest.MemoryManifestSource
+import com.rundeck.repository.client.manifest.RundeckOfficialManifestService
 import com.rundeck.repository.definition.RepositoryDefinition
 import com.rundeck.repository.manifest.ManifestEntry
 import com.rundeck.repository.manifest.ManifestService
@@ -46,8 +47,9 @@ class RundeckHttpRepositoryTest extends Specification {
         when:
         RepositoryDefinition repoDef = new RepositoryDefinition()
         repoDef.repositoryName = "OSS"
-        repoDef.configProperties.rundeckRepoEndpoint = endpoint
         RundeckHttpRepository repo = new RundeckHttpRepository(repoDef)
+        repo.rundeckRepositoryEndpoint = endpoint
+        repo.manifestService = new RundeckOfficialManifestService(endpoint)
         def pubKey = repo.getRundeckPublicKey()
         RecordedRequest r = httpServer.takeRequest()
         def pubKeyFromCache = repo.getRundeckPublicKey()

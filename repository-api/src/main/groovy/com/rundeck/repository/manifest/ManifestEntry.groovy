@@ -47,8 +47,7 @@ class ManifestEntry {
     @Searchable
     Collection<String> providesServices = []
     Collection<String> oldVersions = []
-    Integer rating //1-5 stars
-    Integer installs
+
     boolean installed
 
     static List<String> searchableFieldList() {

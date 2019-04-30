@@ -40,10 +40,10 @@ class MemoryManifestService implements ManifestService {
     }
 
     @Override
-    Collection<ManifestEntry> listArtifacts(Integer offset = 0, Integer max = -1) {
+    synchronized Collection<ManifestEntry> listArtifacts(Integer offset = 0, Integer max = -1) {
         if(!offset) offset = 0
         if(!max) max = -1
-        if(offset == 0 && max == -1) return artifacts.sort(artifactSorter).asImmutable()
+        if(offset == 0 && max == -1) return artifacts.asImmutable()
 
         int lmax = offset+ max > artifacts.size()- 1 ? artifacts.size()- 1 : offset+ max
         return artifacts.sort(artifactSorter).subList(offset, lmax).asImmutable()
@@ -54,7 +54,7 @@ class MemoryManifestService implements ManifestService {
     }
 
     @Override
-    Collection<ManifestEntry> searchArtifacts(final ManifestSearch search) {
+    synchronized Collection<ManifestEntry> searchArtifacts(final ManifestSearch search) {
         Set<ManifestEntry> searchResuls = [] as Set
         if(!search) return searchResuls
         artifacts.each { artifact ->
@@ -69,11 +69,12 @@ class MemoryManifestService implements ManifestService {
     }
 
     @Override
-    ResponseMessage syncManifest() {
+    synchronized ResponseMessage syncManifest() {
         try {
             ArtifactManifest newManifest = manifestSource.getManifest()
             artifacts.clear()
             newManifest.entries.each { artifacts.add(it) }
+            artifacts.sort(artifactSorter)
             if(LOG.traceEnabled) LOG.trace("syncing manifest ${newManifest.entries.size()} - artifacts cached")
             return ResponseMessage.success()
         } catch(Exception ex) {

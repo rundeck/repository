@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.rundeck.repository.ResponseBatch
 import com.rundeck.repository.artifact.RepositoryArtifact
 import com.rundeck.repository.client.manifest.HttpManifestService
+import com.rundeck.repository.client.manifest.RundeckOfficialManifestService
 import com.rundeck.repository.client.signing.GpgTools
 import com.rundeck.repository.client.util.ArtifactUtils
 import com.rundeck.repository.definition.RepositoryDefinition
@@ -33,6 +34,8 @@ import org.slf4j.LoggerFactory
 
 
 class RundeckHttpRepository implements ArtifactRepository {
+    private static final String REPO_ENDPOINT = "https://api.rundeck.com/repo/v1/oss"
+    private static final String REPO_STAGING_ENDPOINT = "https://api-stage.rundeck.com/repo/v1/oss"
     private static Logger LOG = LoggerFactory.getLogger(RundeckHttpRepository)
     private OkHttpClient client = new OkHttpClient();
     private static ObjectMapper mapper = new ObjectMapper()
@@ -44,14 +47,9 @@ class RundeckHttpRepository implements ArtifactRepository {
     String rundeckRepositoryEndpoint
 
     RundeckHttpRepository(RepositoryDefinition repoDef) {
-        if (!repoDef.configProperties.rundeckRepoEndpoint) {
-            throw new Exception(
-                    "Rundeck repository endpoint must be provided by setting configProperties.rundeckRepoEndpoint in repository definition."
-            )
-        }
-        this.rundeckRepositoryEndpoint = repoDef.configProperties.rundeckRepoEndpoint
+        this.rundeckRepositoryEndpoint = repoDef.configProperties.staging == true ? REPO_STAGING_ENDPOINT : REPO_ENDPOINT
         this.repositoryDefinition = repoDef
-        this.manifestService = new HttpManifestService(repoDef.configProperties.rundeckRepoEndpoint)
+        this.manifestService = new RundeckOfficialManifestService(this.rundeckRepositoryEndpoint)
     }
 
     @Override
