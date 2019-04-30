@@ -41,7 +41,7 @@ class ManifestEntry {
     @Searchable
     String targetHostCompatibility
     String binaryLink
-    Long lastRelease
+    String lastRelease
     @Searchable
     Collection<String> tags = []
     @Searchable
@@ -49,6 +49,7 @@ class ManifestEntry {
     Collection<String> oldVersions = []
 
     boolean installed
+    boolean updatable
 
     static List<String> searchableFieldList() {
         def fieldList = []

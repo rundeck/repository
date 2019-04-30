@@ -77,21 +77,12 @@ class RundeckManifestEntry extends ManifestEntry {
 
     boolean getInstallable() { return record.object_id }
 
-//    Long getLastRelease() {
-//        return
-//    }
-//
-//    Collection<String> getTags() {
-//        return tags
-//    }
-//
+    String getLastRelease() {
+        return record.last_release
+    }
+
     Collection<String> getProvidesServices() {
         return record.taxonomies.plugin_type
     }
-//
-//    Collection<String> getOldVersions() {
-//        return oldVersions
-//    }
-
 
 }
