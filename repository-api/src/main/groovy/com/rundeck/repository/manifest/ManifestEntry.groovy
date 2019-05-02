@@ -40,6 +40,8 @@ class ManifestEntry {
     String rundeckCompatibility
     @Searchable
     String targetHostCompatibility
+    String sourceLink
+    String docsLink
     String binaryLink
     String lastRelease
     @Searchable
