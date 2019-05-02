@@ -53,6 +53,7 @@ class RundeckRepositoryArtifact implements RepositoryArtifact {
     Collection<String> providesServices
     String thirdPartyDependencies
     String sourceLink
+    String docsLink
     String binaryLink
     String originalFilename
 
@@ -72,6 +73,8 @@ class RundeckRepositoryArtifact implements RepositoryArtifact {
         entry.tags = tags
         entry.lastRelease = releaseDate
         entry.binaryLink = binaryLink
+        entry.sourceLink = sourceLink
+        entry.docsLink = docsLink
         return entry
     }
 

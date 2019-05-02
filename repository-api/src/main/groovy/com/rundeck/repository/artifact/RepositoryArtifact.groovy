@@ -51,6 +51,8 @@ interface RepositoryArtifact {
     void setThirdPartyDependencies(final String thirdPartyDependencies)
     String getSourceLink()
     void setSourceLink(final String sourceLink)
+    String getDocsLink()
+    void setDocsLink(final String docsLink)
     String getBinaryLink()
     void setBinaryLink(final String binaryLink)
     String getOriginalFilename()
