@@ -33,8 +33,9 @@ dependencies{
 }
 
 repositories {
+    mavenLocal()
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
     jcenter()
     maven { url "https://jitpack.io" }
-    mavenLocal()
 }
 shadowJar {}

@@ -52,6 +52,7 @@ class ManifestEntry {
 
     boolean installed
     boolean updatable
+    String installedVersion
 
     static List<String> searchableFieldList() {
         def fieldList = []

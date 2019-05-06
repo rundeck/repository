@@ -129,6 +129,7 @@ class ArtifactUtils {
         artifact.releaseDate = pluginMetadata.getPluginDate()?.time ?: pluginMetadata.getDateLoaded()?.time
         artifact.rundeckCompatibility = pluginMetadata.getRundeckCompatibilityVersion()
         artifact.sourceLink = pluginMetadata.getPluginSourceLink()
+        artifact.docsLink = pluginMetadata.getPluginDocsLink()
         artifact.tags = pluginMetadata.getTags()
         artifact.license = pluginMetadata.getPluginLicense()
         artifact.thirdPartyDependencies = pluginMetadata.pluginThirdPartyDependencies

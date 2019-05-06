@@ -130,6 +130,11 @@ class PluginMetaToPluginMetadataAdaptor implements PluginMetadata {
     }
 
     @Override
+    String getPluginDocsLink() {
+        return meta.docsLink
+    }
+
+    @Override
     String getPluginType() {
         return "script"
     }
