@@ -17,6 +17,8 @@ package com.rundeck.repository.client.repository
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.rundeck.repository.ResponseBatch
+import com.rundeck.repository.ResponseCodes
+import com.rundeck.repository.ResponseMessage
 import com.rundeck.repository.artifact.RepositoryArtifact
 import com.rundeck.repository.client.manifest.HttpManifestService
 import com.rundeck.repository.client.manifest.RundeckOfficialManifestService
@@ -155,12 +157,12 @@ class RundeckHttpRepository implements ArtifactRepository {
 
     @Override
     ResponseBatch saveNewArtifact(final RepositoryArtifact artifact) {
-        throw new RuntimeException("Operation not supported")
+        return new ResponseBatch().withMessage(new ResponseMessage(code: ResponseCodes.NOT_SUPPORTED,message:"Operation Not Supported"))
     }
 
     @Override
     ResponseBatch uploadArtifact(final InputStream artifactInputStream) {
-        throw new RuntimeException("Operation not supported")
+        return new ResponseBatch().withMessage(new ResponseMessage(code: ResponseCodes.NOT_SUPPORTED,message:"Operation Not Supported"))
     }
 
     @Override

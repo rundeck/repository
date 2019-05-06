@@ -18,6 +18,7 @@ package com.rundeck.repository
 
 class ResponseCodes {
     static final String SUCCESS                                 = "operation.succeeded"
+    static final String NOT_SUPPORTED                           = "operation.not.supported"
     static final String META_VALIDATION_FAILURE                 = "artifact.meta.validation.failure"
     static final String INVALID_BINARY                          = "artifact.binary.invalid"
     static final String META_UPLOAD_FAILED                      = "artifact.meta.upload.failure"

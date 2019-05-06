@@ -117,6 +117,12 @@ class StorageTreeArtifactRepository implements ArtifactRepository {
     ResponseBatch saveNewArtifact(final RepositoryArtifact artifact) {
         ResponseBatch response = new ResponseBatch()
         String artifactPath = ARTIFACT_BASE + artifact.getArtifactMetaFileName()
+        if(storageTree.hasResource(artifactPath)) {
+            response.messages.add(new ResponseMessage(code: ResponseCodes.SUCCESS,message:"Artifact already exists"))
+
+            return response
+        }
+
         Map meta = [:]
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream()
@@ -144,6 +150,10 @@ class StorageTreeArtifactRepository implements ArtifactRepository {
     ResponseBatch uploadArtifactBinary(final RundeckRepositoryArtifact artifact, final InputStream artifactBinaryInputStream) {
         ResponseBatch response = new ResponseBatch()
         String binaryPath = BINARY_BASE+artifact.getArtifactBinaryFileName()
+        if(storageTree.hasResource(binaryPath)) {
+            response.messages.add(new ResponseMessage(code: ResponseCodes.SUCCESS, message: "Binary already exists"))
+            return response
+        }
         Map meta = [:]
         try {
             def resource = DataUtil.withStream(artifactBinaryInputStream, meta, resourceFactory)
