@@ -23,6 +23,7 @@ import com.rundeck.repository.Constants
 import com.rundeck.repository.ResponseBatch
 import com.rundeck.repository.artifact.RepositoryArtifact
 import com.rundeck.repository.client.TestUtils
+import com.rundeck.repository.client.exceptions.ArtifactNotFoundException
 import com.rundeck.repository.client.util.ArtifactUtils
 import com.rundeck.repository.definition.RepositoryDefinition
 import com.rundeck.repository.api.RepositoryOwner
@@ -49,7 +50,6 @@ class FilesystemArtifactRepositoryTest extends Specification {
     def setupSpec() {
         buildDir = File.createTempDir()
         repoBase = File.createTempDir()
-        println repoBase.absolutePath
         repoManifest = new File(repoBase, "manifest.json")
         repoManifest.createNewFile()
         repoManifest << "{}"
@@ -89,7 +89,14 @@ class FilesystemArtifactRepositoryTest extends Specification {
     def "GetArtifact"() {
         expect:
         repo.getArtifact("4819d98fea70")
+    }
 
+    def "GetArtifact bad artifact id throws ArtifactNotFoundException"() {
+        when:
+        repo.getArtifact("this_does_not_exist")
+
+        then:
+        thrown(ArtifactNotFoundException)
     }
 
     def "GetArtifactBinary"() {

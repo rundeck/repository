@@ -25,6 +25,7 @@ import com.rundeck.repository.api.RepositoryOwner
 import com.rundeck.repository.api.RepositoryType
 import com.rundeck.repository.artifact.RepositoryArtifact
 import com.rundeck.repository.client.TestUtils
+import com.rundeck.repository.client.exceptions.ArtifactNotFoundException
 import com.rundeck.repository.client.util.ArtifactUtils
 import com.rundeck.repository.client.util.ResourceFactory
 import com.rundeck.repository.definition.RepositoryDefinition
@@ -104,6 +105,14 @@ class StorageTreeRepositoryArtifactRepositoryTest extends Specification {
     def "GetArtifact"() {
         expect:
         repo.getArtifact("4819d98fea70")
+    }
+
+    def "GetArtifact bad artifact id throws ArtifactNotFoundException"() {
+        when:
+        repo.getArtifact("doesnotexist")
+
+        then:
+        thrown(ArtifactNotFoundException)
     }
 
     def "GetArtifactBinary"() {

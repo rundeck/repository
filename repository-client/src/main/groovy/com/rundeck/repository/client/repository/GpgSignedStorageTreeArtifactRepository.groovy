@@ -20,6 +20,7 @@ import com.rundeck.repository.ResponseBatch
 import com.rundeck.repository.ResponseCodes
 import com.rundeck.repository.ResponseMessage
 import com.rundeck.repository.artifact.RepositoryArtifact
+import com.rundeck.repository.client.exceptions.ArtifactNotFoundException
 import com.rundeck.repository.client.signing.GpgPassphraseProvider
 import com.rundeck.repository.client.signing.GpgTools
 import com.rundeck.repository.client.util.ArtifactFileset
@@ -66,7 +67,9 @@ class GpgSignedStorageTreeArtifactRepository extends StorageTreeArtifactReposito
 
     @Override
     RepositoryArtifact getArtifact(final String artifactId, final String version = null) {
-       String artifactVer = version ?: manifestService.getEntry(artifactId).currentVersion
+       def entry = manifestService.getEntry(artifactId)
+       if(!entry) throw new ArtifactNotFoundException("Artifact with id: ${artifactId} could not be found")
+       String artifactVer = version ?: entry.currentVersion
        String metaPath = ArtifactUtils.artifactMetaFileName(artifactId, artifactVer)
        InputStream artifactFile = storageTree.getResource(ARTIFACT_BASE+ metaPath).contents.inputStream
        InputStream artifactSig = storageTree.getResource(ARTIFACT_BASE+ metaPath+SIG_SUFFIX).contents.inputStream
@@ -77,6 +80,7 @@ class GpgSignedStorageTreeArtifactRepository extends StorageTreeArtifactReposito
     @Override
     InputStream getArtifactBinary(final String artifactId, final String version = null) {
         ManifestEntry entry = manifestService.getEntry(artifactId)
+        if(!entry) throw new ArtifactNotFoundException("Artifact with id: ${artifactId} could not be found")
         String artifactVer = version ?: entry.currentVersion
         String extension = ArtifactUtils.artifactTypeFromNice(entry.artifactType).extension
         String binaryPath = ArtifactUtils.artifactBinaryFileName(artifactId,artifactVer,extension)

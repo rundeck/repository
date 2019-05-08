@@ -17,6 +17,7 @@ package com.rundeck.repository.client.repository
 
 import com.rundeck.repository.client.RundeckRepositoryClient
 import com.rundeck.repository.client.TestUtils
+import com.rundeck.repository.client.exceptions.ArtifactNotFoundException
 import com.rundeck.repository.client.manifest.MemoryManifestService
 import com.rundeck.repository.client.manifest.MemoryManifestSource
 import com.rundeck.repository.client.manifest.RundeckOfficialManifestService
@@ -88,8 +89,25 @@ class RundeckHttpRepositoryTest extends Specification {
         Exception ex = thrown()
         ex.message == "Binary not found"
 
+    }
 
+    def "GetArtifact bad artifact id throws ArtifactNotFoundException"() {
+        setup:
+        MockWebServer httpServer = new MockWebServer()
+        httpServer.start()
+        httpServer.enqueue(new MockResponse().setResponseCode(404))
+        String endpoint = httpServer.url("repo/v1/oss").toString()
 
+        when:
+        RepositoryDefinition repoDef = new RepositoryDefinition()
+        repoDef.repositoryName = "OSS"
+        RundeckHttpRepository repo = new RundeckHttpRepository(repoDef)
+        repo.rundeckRepositoryEndpoint = endpoint
+        repo.manifestService = new RundeckOfficialManifestService(endpoint, 1, TimeUnit.HOURS)
+        repo.getArtifact("doesnotexist")
+
+        then:
+        thrown(ArtifactNotFoundException)
     }
 
 }

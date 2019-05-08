@@ -20,6 +20,7 @@ import com.rundeck.repository.ResponseBatch
 import com.rundeck.repository.ResponseCodes
 import com.rundeck.repository.ResponseMessage
 import com.rundeck.repository.artifact.RepositoryArtifact
+import com.rundeck.repository.client.exceptions.ArtifactNotFoundException
 import com.rundeck.repository.client.manifest.HttpManifestService
 import com.rundeck.repository.client.manifest.RundeckOfficialManifestService
 import com.rundeck.repository.client.signing.GpgTools
@@ -66,6 +67,7 @@ class RundeckHttpRepository implements ArtifactRepository {
         Response response
         try {
             def manifestEntry = manifestService.getEntry(artifactId)
+            if(!manifestEntry) throw new ArtifactNotFoundException("Artifact with id: ${artifactId} could not be found")
             String artifactVer = version ?: manifestEntry.currentVersion
             String artifactUrl = rundeckRepositoryEndpoint+ "/artifact/${artifactId}/${artifactVer}"
             if (LOG.traceEnabled) {
@@ -88,6 +90,7 @@ class RundeckHttpRepository implements ArtifactRepository {
     @Override
     InputStream getArtifactBinary(final String artifactId, final String version = null) {
         ManifestEntry entry = manifestService.getEntry(artifactId)
+        if(!entry) throw new ArtifactNotFoundException("Artifact with id: ${artifactId} could not be found")
         String artifactVer = version ?: entry.currentVersion
         String artifactUrl = rundeckRepositoryEndpoint+ "/binary/${artifactId}/${artifactVer}"
         if (LOG.traceEnabled) {

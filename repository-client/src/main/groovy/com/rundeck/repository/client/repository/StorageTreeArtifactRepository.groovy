@@ -21,6 +21,7 @@ import com.rundeck.repository.ResponseCodes
 import com.rundeck.repository.ResponseMessage
 import com.rundeck.repository.artifact.RepositoryArtifact
 import com.rundeck.repository.client.artifact.RundeckRepositoryArtifact
+import com.rundeck.repository.client.exceptions.ArtifactNotFoundException
 import com.rundeck.repository.client.manifest.MemoryManifestService
 import com.rundeck.repository.client.manifest.MemoryManifestSource
 import com.rundeck.repository.client.manifest.StorageTreeManifestCreator
@@ -75,13 +76,16 @@ class StorageTreeArtifactRepository implements ArtifactRepository {
 
     @Override
     RepositoryArtifact getArtifact(final String artifactId, final String version = null) {
-        String artifactVer = version ?: manifestService.getEntry(artifactId).currentVersion
+        def entry = manifestService.getEntry(artifactId)
+        if(!entry) throw new ArtifactNotFoundException("Artifact with id: ${artifactId} could not be found")
+        String artifactVer = version ?: entry.currentVersion
         ArtifactUtils.createArtifactFromYamlStream(storageTree.getResource(ARTIFACT_BASE+ ArtifactUtils.artifactMetaFileName(artifactId, artifactVer)).contents.inputStream)
     }
 
     @Override
     InputStream getArtifactBinary(final String artifactId, final String version = null) {
         ManifestEntry entry = manifestService.getEntry(artifactId)
+        if(!entry) throw new ArtifactNotFoundException("Artifact with id: ${artifactId} could not be found")
         String artifactVer = version ?: entry.currentVersion
         String extension = ArtifactUtils.artifactTypeFromNice(entry.artifactType).extension
         return storageTree.getResource(BINARY_BASE+ArtifactUtils.artifactBinaryFileName(artifactId, artifactVer, extension)).contents.inputStream

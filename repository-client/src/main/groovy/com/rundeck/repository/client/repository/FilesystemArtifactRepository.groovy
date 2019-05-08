@@ -20,6 +20,7 @@ import com.rundeck.repository.ResponseCodes
 import com.rundeck.repository.ResponseMessage
 import com.rundeck.repository.artifact.RepositoryArtifact
 import com.rundeck.repository.client.artifact.RundeckRepositoryArtifact
+import com.rundeck.repository.client.exceptions.ArtifactNotFoundException
 import com.rundeck.repository.client.manifest.FilesystemManifestCreator
 import com.rundeck.repository.client.manifest.FilesystemManifestSource
 import com.rundeck.repository.client.manifest.MemoryManifestService
@@ -71,13 +72,16 @@ class FilesystemArtifactRepository implements ArtifactRepository {
 
     @Override
     RepositoryArtifact getArtifact(final String artifactId, final String version = null) {
-        String artifactVer = version ?: manifestService.getEntry(artifactId).currentVersion
+        def entry = manifestService.getEntry(artifactId)
+        if(!entry) throw new ArtifactNotFoundException("Artifact with id: ${artifactId} could not be found")
+        String artifactVer = version ?: entry.currentVersion
         return ArtifactUtils.createArtifactFromYamlStream(new File(repoBase, ARTIFACT_BASE+ ArtifactUtils.artifactMetaFileName(artifactId, artifactVer)).newInputStream())
     }
 
     @Override
     InputStream getArtifactBinary(final String artifactId, final String version = null) {
         ManifestEntry entry = manifestService.getEntry(artifactId)
+        if(!entry) throw new ArtifactNotFoundException("Artifact with id: ${artifactId} could not be found")
         String artifactVer = version ?: entry.currentVersion
         String extension = ArtifactUtils.artifactTypeFromNice(entry.artifactType).extension
         return new File(repoBase,BINARY_BASE+ArtifactUtils.artifactBinaryFileName(artifactId,artifactVer,extension)).newInputStream()
