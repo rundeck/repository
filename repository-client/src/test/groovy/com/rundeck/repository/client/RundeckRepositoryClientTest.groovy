@@ -79,7 +79,7 @@ class RundeckRepositoryClientTest extends Specification {
 
         when:
         RundeckRepositoryClient client = new RundeckRepositoryClient()
-        client.artifactInstaller = new StorageTreeArtifactInstaller(new StorageTreeImpl(FileTreeUtil.forRoot(pluginRoot, new ResourceFactory())))
+        client.artifactInstaller = new StorageTreeArtifactInstaller(new StorageTreeImpl(FileTreeUtil.forRoot(pluginRoot, new ResourceFactory())),"/")
         client.repositoryManager = new RundeckRepositoryManager(new RundeckRepositoryFactory())
         client.repositoryManager.setRepositoryDefinitionListDatasourceUrl(getClass().getClassLoader().getResource("repository-definition-list.yaml").toString())
 

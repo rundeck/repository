@@ -22,6 +22,7 @@ import com.rundeck.repository.ResponseMessage
 import com.rundeck.repository.artifact.ArtifactInstaller
 import com.rundeck.repository.artifact.RepositoryArtifact
 import com.rundeck.repository.client.repository.RundeckHttpRepository
+import com.rundeck.repository.client.util.PathUtils
 import com.rundeck.repository.client.util.ResourceFactory
 import org.rundeck.storage.data.DataUtil
 import org.slf4j.Logger
@@ -31,17 +32,20 @@ import org.slf4j.LoggerFactory
 class StorageTreeArtifactInstaller implements ArtifactInstaller {
     private static Logger LOG = LoggerFactory.getLogger(StorageTreeArtifactInstaller)
     private static final ResourceFactory RESOURCE_FACTORY = new ResourceFactory()
+    private static final String PLUGIN_BASE = "plugins"
     private StorageTree storageTree
+    private final String pluginPath
 
-    StorageTreeArtifactInstaller(StorageTree storageTree) {
+    StorageTreeArtifactInstaller(StorageTree storageTree, String treePath) {
         this.storageTree = storageTree
+        this.pluginPath = PathUtils.composePath(treePath,PLUGIN_BASE)
     }
 
     @Override
     ResponseBatch installArtifact(final RepositoryArtifact artifact, InputStream binaryInputStream) {
         ResponseBatch batch = new ResponseBatch()
         try {
-            String artifactKey = "plugins/"+ artifact.getInstallationFileName()
+            String artifactKey = pluginPath+"/"+ artifact.getInstallationFileName()
             def resource = DataUtil.withStream(binaryInputStream, [:], RESOURCE_FACTORY)
             if(storageTree.hasResource(artifactKey)) {
                 storageTree.updateResource(artifactKey, resource)

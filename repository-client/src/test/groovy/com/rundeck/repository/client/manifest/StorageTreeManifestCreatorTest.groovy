@@ -39,7 +39,7 @@ class StorageTreeManifestCreatorTest extends Specification {
         timestamptree.createResource("artifacts/4819d98fea70-0.1.yaml",DataUtil.withStream(getClass().getClassLoader().getResourceAsStream("rundeck-repository-artifact.yaml"),[:],new ResourceFactory()))
 
         when:
-        StorageTreeManifestCreator manifestCreator = new StorageTreeManifestCreator(timestamptree)
+        StorageTreeManifestCreator manifestCreator = new StorageTreeManifestCreator(timestamptree,"/")
         ArtifactManifest manifest = manifestCreator.createManifest()
 
         then:

@@ -17,7 +17,9 @@ package com.rundeck.repository.client.manifest
 
 import com.dtolabs.rundeck.core.storage.ResourceMeta
 import com.rundeck.repository.client.artifact.RundeckRepositoryArtifact
+import com.rundeck.repository.client.repository.StorageTreeArtifactRepository
 import com.rundeck.repository.client.util.ArtifactUtils
+import com.rundeck.repository.client.util.PathUtils
 import com.rundeck.repository.manifest.ArtifactManifest
 import com.rundeck.repository.manifest.ManifestEntry
 import org.rundeck.storage.api.Tree
@@ -25,15 +27,17 @@ import org.rundeck.storage.api.Tree
 class StorageTreeManifestCreator extends AbstractManifestCreator {
 
     private final Tree<ResourceMeta> repoTree
+    private final String artifactPath
 
-    StorageTreeManifestCreator(Tree<ResourceMeta> repoTree) {
+    StorageTreeManifestCreator(Tree<ResourceMeta> repoTree, String treePath) {
+        this.artifactPath = PathUtils.composePath(treePath, StorageTreeArtifactRepository.ARTIFACT_BASE)
         this.repoTree = repoTree
     }
 
     @Override
     ArtifactManifest createManifest() {
         ArtifactManifest manifest = new ArtifactManifest()
-        repoTree.listDirectoryResources("artifacts").each { resource ->
+        repoTree.listDirectoryResources(artifactPath).each { resource ->
             RundeckRepositoryArtifact artifact = ArtifactUtils.createArtifactFromYamlStream(resource.contents.inputStream)
             ManifestEntry entry = artifact.createManifestEntry()
             entry.lastRelease = resource.contents.creationTime.time

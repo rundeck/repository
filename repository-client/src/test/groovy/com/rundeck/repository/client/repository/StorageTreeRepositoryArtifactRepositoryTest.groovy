@@ -38,6 +38,8 @@ import spock.lang.Specification
 class StorageTreeRepositoryArtifactRepositoryTest extends Specification {
 
     @Shared
+    String treeSubPath = "repo1"
+    @Shared
     File repoBase
     @Shared
     File buildDir
@@ -63,6 +65,7 @@ class StorageTreeRepositoryArtifactRepositoryTest extends Specification {
         repoDef.repositoryName = "private-storage-tree-test"
         repoDef.configProperties.manifestType = "tree"
         repoDef.configProperties.manifestPath = "manifest.json"
+        repoDef.configProperties.storageTreePath = "/"+treeSubPath
         repoDef.type = RepositoryType.STORAGE_TREE
         repoDef.owner = RepositoryOwner.PRIVATE
         repo = new StorageTreeArtifactRepository(StorageUtil.asStorageTree(timestamptree), repoDef)
@@ -79,7 +82,7 @@ class StorageTreeRepositoryArtifactRepositoryTest extends Specification {
 
         then:
         rbatch.batchSucceeded()
-        new File(repoBase,"content/artifacts/4819d98fea70-0.1.yaml").exists()
+        new File(repoBase,"content/${treeSubPath}/artifacts/4819d98fea70-0.1.yaml").exists()
     }
 
     def "UploadArtifactBinary"() {
@@ -88,8 +91,8 @@ class StorageTreeRepositoryArtifactRepositoryTest extends Specification {
 
         then:
         rbatch.batchSucceeded()
-        new File(repoBase,"content/artifacts/882ddccbcdd9-0.1.0.yaml").exists()
-        new File(repoBase,"content/binary/882ddccbcdd9-0.1.0.jar").exists()
+        new File(repoBase,"content/${treeSubPath}/artifacts/882ddccbcdd9-0.1.0.yaml").exists()
+        new File(repoBase,"content/${treeSubPath}/binary/882ddccbcdd9-0.1.0.jar").exists()
     }
 
     def "Upload Legacy 1.2 Binary"() {
@@ -98,8 +101,8 @@ class StorageTreeRepositoryArtifactRepositoryTest extends Specification {
 
         then:
         rbatch.batchSucceeded()
-        new File(repoBase,"content/artifacts/93a530685018-3.0.1-SNAPSHOT.yaml").exists()
-        new File(repoBase,"content/binary/93a530685018-3.0.1-SNAPSHOT.jar").exists()
+        new File(repoBase,"content/${treeSubPath}/artifacts/93a530685018-3.0.1-SNAPSHOT.yaml").exists()
+        new File(repoBase,"content/${treeSubPath}/binary/93a530685018-3.0.1-SNAPSHOT.jar").exists()
     }
 
     def "GetArtifact"() {

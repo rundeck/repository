@@ -15,8 +15,7 @@
  */
 package com.rundeck.repository.client.repository
 
-import com.rundeck.repository.client.repository.tree.NamedTreeProvider
-import com.rundeck.repository.client.repository.tree.TreeProvider
+import com.dtolabs.rundeck.core.storage.StorageTree
 import com.rundeck.repository.definition.RepositoryDefinition
 import com.rundeck.repository.api.RepositoryFactory
 import com.rundeck.repository.api.RepositoryOwner
@@ -25,14 +24,14 @@ import com.rundeck.repository.api.ArtifactRepository
 
 class RundeckRepositoryFactory implements RepositoryFactory {
 
-    TreeProvider treeProvider = new NamedTreeProvider()
+    StorageTree repositoryStorageTree
 
     ArtifactRepository createRepository(RepositoryDefinition definition) {
         ArtifactRepository repository
         if(definition.type == RepositoryType.FILE) {
             repository = new FilesystemArtifactRepository(definition)
         } else if(definition.type == RepositoryType.STORAGE_TREE) {
-            repository = new StorageTreeArtifactRepository(treeProvider.getTree(definition.configProperties.treeName), definition)
+            repository = new StorageTreeArtifactRepository(repositoryStorageTree, definition)
         } else if(definition.type == RepositoryType.HTTP && definition.owner == RepositoryOwner.RUNDECK) {
             repository = new RundeckHttpRepository(definition)
         } else {

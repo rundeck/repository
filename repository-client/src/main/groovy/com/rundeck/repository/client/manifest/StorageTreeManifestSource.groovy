@@ -17,6 +17,7 @@ package com.rundeck.repository.client.manifest
 
 import com.dtolabs.rundeck.core.storage.StorageTree
 import com.rundeck.repository.client.util.ArtifactUtils
+import com.rundeck.repository.client.util.PathUtils
 import com.rundeck.repository.client.util.ResourceFactory
 import com.rundeck.repository.manifest.ArtifactManifest
 import com.rundeck.repository.manifest.ManifestSource
@@ -24,13 +25,16 @@ import org.rundeck.storage.data.DataUtil
 
 
 class StorageTreeManifestSource implements ManifestSource {
-    private StorageTree storageTree
-    private String manifestPath
+    private static final String MANIFEST_NAME = "manifest.json"
+    private final StorageTree storageTree
+    private final String treePath
+    private final String manifestPath
     private static final ResourceFactory resourceFactory = new ResourceFactory()
 
-    StorageTreeManifestSource(final StorageTree storageTree, final String manifestPath) {
+    StorageTreeManifestSource(final StorageTree storageTree, final String treePath) {
         this.storageTree = storageTree
-        this.manifestPath = manifestPath
+        this.treePath = treePath
+        this.manifestPath = PathUtils.composePath(treePath,MANIFEST_NAME)
         if(!storageTree.hasResource(manifestPath)) {
             def resource = storageTree.createResource(manifestPath, DataUtil.withText("{}",[:],resourceFactory))
             resource.contents.inputStream.close() //To prevent leaking resources

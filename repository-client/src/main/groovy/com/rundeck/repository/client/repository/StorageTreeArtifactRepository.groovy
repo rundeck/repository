@@ -28,6 +28,7 @@ import com.rundeck.repository.client.manifest.StorageTreeManifestCreator
 import com.rundeck.repository.client.manifest.StorageTreeManifestSource
 import com.rundeck.repository.client.util.ArtifactFileset
 import com.rundeck.repository.client.util.ArtifactUtils
+import com.rundeck.repository.client.util.PathUtils
 import com.rundeck.repository.client.util.ResourceFactory
 import com.rundeck.repository.client.validators.BinaryValidator
 import com.rundeck.repository.definition.RepositoryDefinition
@@ -42,8 +43,8 @@ import org.rundeck.storage.data.DataUtil
 
 class StorageTreeArtifactRepository implements ArtifactRepository {
     private static final String MEMORY_MANIFEST_SOURCE = "memory"
-    static final String ARTIFACT_BASE = "artifacts/"
-    static final String BINARY_BASE = "binary/"
+    static final String ARTIFACT_BASE = "/artifacts/"
+    static final String BINARY_BASE = "/binary/"
     @PackageScope
     StorageTree storageTree
     RepositoryDefinition repositoryDefinition
@@ -52,6 +53,8 @@ class StorageTreeArtifactRepository implements ArtifactRepository {
     private StorageTreeManifestCreator manifestCreator
     static final ResourceFactory resourceFactory = new ResourceFactory()
     private ManifestSource manifestSource
+    protected final String artifactBase
+    protected final String binaryBase
 
     StorageTreeArtifactRepository(StorageTree storageTree, RepositoryDefinition repositoryDefinition, RepositoryEventEmitter eventEmitter) {
         this(storageTree,repositoryDefinition)
@@ -61,12 +64,15 @@ class StorageTreeArtifactRepository implements ArtifactRepository {
 
     StorageTreeArtifactRepository(StorageTree storageTree, RepositoryDefinition repositoryDefinition) {
         if(!storageTree) throw new Exception("Unable to initialize storage tree repository. No storage tree provided.")
-        if(!repositoryDefinition.configProperties.manifestPath) throw new Exception("Path to manifest in storage tree must be provided by setting configProperties.manifestPath in repository definition.")
+        if(!repositoryDefinition.configProperties.storageTreePath) throw new Exception("Storage Tree Path must be provided by setting configProperties.storageTreePath in repository definition.")
         this.storageTree = storageTree
+        String storageTreePath = repositoryDefinition.configProperties.storageTreePath
         this.repositoryDefinition = repositoryDefinition
-        this.manifestSource = repositoryDefinition.configProperties.manifestType == MEMORY_MANIFEST_SOURCE ? new MemoryManifestSource() : new StorageTreeManifestSource(storageTree, this.repositoryDefinition.configProperties.manifestPath)
+        this.artifactBase = PathUtils.composePath(storageTreePath, ARTIFACT_BASE)
+        this.binaryBase = PathUtils.composePath(storageTreePath,BINARY_BASE)
+        this.manifestSource = repositoryDefinition.configProperties.manifestType == MEMORY_MANIFEST_SOURCE ? new MemoryManifestSource() : new StorageTreeManifestSource(storageTree, storageTreePath)
         this.manifestService = new MemoryManifestService(manifestSource)
-        manifestCreator = new StorageTreeManifestCreator(storageTree)
+        manifestCreator = new StorageTreeManifestCreator(storageTree,storageTreePath)
     }
 
     @Override
@@ -79,7 +85,7 @@ class StorageTreeArtifactRepository implements ArtifactRepository {
         def entry = manifestService.getEntry(artifactId)
         if(!entry) throw new ArtifactNotFoundException("Artifact with id: ${artifactId} could not be found")
         String artifactVer = version ?: entry.currentVersion
-        ArtifactUtils.createArtifactFromYamlStream(storageTree.getResource(ARTIFACT_BASE+ ArtifactUtils.artifactMetaFileName(artifactId, artifactVer)).contents.inputStream)
+        ArtifactUtils.createArtifactFromYamlStream(storageTree.getResource(artifactBase+ ArtifactUtils.artifactMetaFileName(artifactId, artifactVer)).contents.inputStream)
     }
 
     @Override
@@ -88,7 +94,7 @@ class StorageTreeArtifactRepository implements ArtifactRepository {
         if(!entry) throw new ArtifactNotFoundException("Artifact with id: ${artifactId} could not be found")
         String artifactVer = version ?: entry.currentVersion
         String extension = ArtifactUtils.artifactTypeFromNice(entry.artifactType).extension
-        return storageTree.getResource(BINARY_BASE+ArtifactUtils.artifactBinaryFileName(artifactId, artifactVer, extension)).contents.inputStream
+        return storageTree.getResource(binaryBase+ ArtifactUtils.artifactBinaryFileName(artifactId, artifactVer, extension)).contents.inputStream
     }
 
     @Override
@@ -120,7 +126,7 @@ class StorageTreeArtifactRepository implements ArtifactRepository {
     @Override
     ResponseBatch saveNewArtifact(final RepositoryArtifact artifact) {
         ResponseBatch response = new ResponseBatch()
-        String artifactPath = ARTIFACT_BASE + artifact.getArtifactMetaFileName()
+        String artifactPath = artifactBase + artifact.getArtifactMetaFileName()
         if(storageTree.hasResource(artifactPath)) {
             response.messages.add(new ResponseMessage(code: ResponseCodes.SUCCESS,message:"Artifact already exists"))
 
@@ -153,7 +159,7 @@ class StorageTreeArtifactRepository implements ArtifactRepository {
     @PackageScope
     ResponseBatch uploadArtifactBinary(final RundeckRepositoryArtifact artifact, final InputStream artifactBinaryInputStream) {
         ResponseBatch response = new ResponseBatch()
-        String binaryPath = BINARY_BASE+artifact.getArtifactBinaryFileName()
+        String binaryPath = binaryBase+ artifact.getArtifactBinaryFileName()
         if(storageTree.hasResource(binaryPath)) {
             response.messages.add(new ResponseMessage(code: ResponseCodes.SUCCESS, message: "Binary already exists"))
             return response
