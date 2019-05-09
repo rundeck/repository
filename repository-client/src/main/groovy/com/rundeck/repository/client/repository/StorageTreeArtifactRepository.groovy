@@ -40,8 +40,11 @@ import com.rundeck.repository.manifest.ManifestService
 import com.rundeck.repository.manifest.ManifestSource
 import groovy.transform.PackageScope
 import org.rundeck.storage.data.DataUtil
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class StorageTreeArtifactRepository implements ArtifactRepository {
+    private static Logger LOG = LoggerFactory.getLogger(StorageTreeArtifactRepository)
     private static final String MEMORY_MANIFEST_SOURCE = "memory"
     static final String ARTIFACT_BASE = "/artifacts/"
     static final String BINARY_BASE = "/binary/"
@@ -64,9 +67,9 @@ class StorageTreeArtifactRepository implements ArtifactRepository {
 
     StorageTreeArtifactRepository(StorageTree storageTree, RepositoryDefinition repositoryDefinition) {
         if(!storageTree) throw new Exception("Unable to initialize storage tree repository. No storage tree provided.")
-        if(!repositoryDefinition.configProperties.storageTreePath) throw new Exception("Storage Tree Path must be provided by setting configProperties.storageTreePath in repository definition.")
+        if(!repositoryDefinition.configProperties.storageTreePath) LOG.info("No configProperties.storageTreePath specified. Using '/'")
         this.storageTree = storageTree
-        String storageTreePath = repositoryDefinition.configProperties.storageTreePath
+        String storageTreePath = repositoryDefinition.configProperties.storageTreePath ?: "/"
         this.repositoryDefinition = repositoryDefinition
         this.artifactBase = PathUtils.composePath(storageTreePath, ARTIFACT_BASE)
         this.binaryBase = PathUtils.composePath(storageTreePath,BINARY_BASE)

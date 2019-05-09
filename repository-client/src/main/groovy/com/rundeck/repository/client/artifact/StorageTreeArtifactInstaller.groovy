@@ -56,10 +56,7 @@ class StorageTreeArtifactInstaller implements ArtifactInstaller {
                 //some input streams must be closed manually or they will
                 //retain resources
                 binaryInputStream.close()
-            } catch(IOException iex) {
-                //TODO log.warn(unable to close input stream)
-                //probably not a big deal so we don't worry about it
-            }
+            } catch(IOException iex) { }
             batch.addMessage(ResponseMessage.success())
         } catch(Exception ex) {
             LOG.error("Install failed", ex)
