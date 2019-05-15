@@ -51,7 +51,7 @@ class StorageTreeArtifactInstallerTest extends Specification {
         installer.installArtifact(artifact.artifact,pluginBinary.newInputStream())
 
         then:
-        new File(repoBase,"content/mypath/plugins/${artifact.artifact.installationFileName}").exists()
+        new File(repoBase,"content/mypath/${artifact.artifact.installationFileName}").exists()
 
     }
 }

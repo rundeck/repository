@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit
 
 class RundeckOfficialManifestService implements ManifestService {
     private static final String ARTIFACT_LIST = "artifact-list"
-    private static final Logger LOG = LoggerFactory.getLogger(HttpManifestSource)
+    private static final Logger LOG = LoggerFactory.getLogger(RundeckOfficialManifestService)
     private static final ObjectMapper mapper = new ObjectMapper()
     private OkHttpClient client = new OkHttpClient();
     private final String serviceEndpoint

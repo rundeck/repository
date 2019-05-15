@@ -32,13 +32,12 @@ import org.slf4j.LoggerFactory
 class StorageTreeArtifactInstaller implements ArtifactInstaller {
     private static Logger LOG = LoggerFactory.getLogger(StorageTreeArtifactInstaller)
     private static final ResourceFactory RESOURCE_FACTORY = new ResourceFactory()
-    private static final String PLUGIN_BASE = "plugins"
     private StorageTree storageTree
     private final String pluginPath
 
     StorageTreeArtifactInstaller(StorageTree storageTree, String treePath) {
         this.storageTree = storageTree
-        this.pluginPath = PathUtils.composePath(treePath,PLUGIN_BASE)
+        this.pluginPath = treePath
     }
 
     @Override
@@ -48,8 +47,10 @@ class StorageTreeArtifactInstaller implements ArtifactInstaller {
             String artifactKey = pluginPath+"/"+ artifact.getInstallationFileName()
             def resource = DataUtil.withStream(binaryInputStream, [:], RESOURCE_FACTORY)
             if(storageTree.hasResource(artifactKey)) {
+                LOG.debug("Updating artifact at location: " + artifactKey)
                 storageTree.updateResource(artifactKey, resource)
             } else {
+                LOG.debug("Installing new artifact to location: " + artifactKey)
                 storageTree.createResource(artifactKey, resource)
             }
             try {

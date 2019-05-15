@@ -22,7 +22,7 @@ import com.rundeck.repository.api.RepositoryType
 class RepositoryDefinition {
     String repositoryName
     RepositoryType type
-    RepositoryOwner owner
+    RepositoryOwner owner = RepositoryOwner.PRIVATE
     boolean enabled = true
     Map configProperties = [:]
 }
