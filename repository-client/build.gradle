@@ -6,7 +6,7 @@ plugins {
 
 group = 'com.rundeck.repository'
 archivesBaseName = 'repository-client'
-version = "0.9.10"
+version = "0.10.0"
 
 // In this section you declare where to find the dependencies of your project
 repositories {
@@ -22,8 +22,8 @@ dependencies {
     // Use the latest Groovy version for building this library
     compile 'org.codehaus.groovy:groovy-all:2.4.13'
     compile project(":repository-api")
-    compile "org.rundeck:rundeck-core:3.1.0-SNAPSHOT"
-    compile "org.rundeck:rundeck-storage-filesys:3.1.0-SNAPSHOT"
+    compile "org.rundeck:rundeck-core:3.1.0-rc1-20190607"
+    compile "org.rundeck:rundeck-storage-filesys:3.1.0-rc1-20190607"
     compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.0'
     compile 'com.github.java-json-tools:json-schema-validator:2.2.10'
     compile 'org.bouncycastle:bcprov-jdk15on:1.56'
