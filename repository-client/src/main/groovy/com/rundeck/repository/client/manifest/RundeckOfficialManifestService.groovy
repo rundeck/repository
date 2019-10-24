@@ -107,14 +107,14 @@ class RundeckOfficialManifestService implements ManifestService {
                 return artifactList
             } else {
                 LOG.error("listArtifacts http error: ${response.body().string()}")
-                return null
+                return []
             }
         } catch(Exception ex) {
             LOG.error("listArtifacts error",ex)
         } finally {
             if(response) response.body().close()
         }
-        return null
+        return []
     }
 
     @Override

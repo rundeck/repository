@@ -3,6 +3,6 @@ sudo: false
 before_install:
 - sudo apt-get install -y zip
 jdk:
-- oraclejdk8
+- openjdk8
 script:
 - ./gradlew check
