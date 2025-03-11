@@ -7,9 +7,16 @@
  */
 
 plugins {
+    id 'java-library'
     // Apply the groovy plugin to add support for Groovy
     id 'groovy'
-    id 'maven'
+}
+
+// In this section you declare where to find the dependencies of your project
+repositories {
+    // You can declare any Maven/Ivy/file repository here.
+    mavenLocal()
+    mavenCentral()
 }
 
 group = 'com.rundeck.repository'
@@ -18,37 +25,8 @@ version = "0.2"
 
 dependencies {
     // Use the latest Groovy version for building this library
-    compile 'org.codehaus.groovy:groovy-all:2.4.17'
+    compileOnly 'org.codehaus.groovy:groovy-all:3.0.21'
 
     // Use the awesome Spock testing and specification framework
-    testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
-}
-
-// In this section you declare where to find the dependencies of your project
-repositories {
-    // Use jcenter for resolving your dependencies.
-    // You can declare any Maven/Ivy/file repository here.
-    mavenLocal()
-    jcenter()
-}
-
-task('createPom').doLast {
-    pom {
-        project {
-            artifactId 'repository-api'
-            groupId "org.rundeck.repository"
-            inceptionYear '2018'
-            packaging 'jar'
-            version version
-            name( 'Rundeck Repository Api')
-            url 'http://rundeck.org'
-            licenses {
-                license {
-                    name 'The Apache Software License, Version 2.0'
-                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    distribution 'repo'
-                }
-            }
-        }
-    }.writeTo("pom.xml")
+    testImplementation 'org.spockframework:spock-core:2.3-groovy-3.0'
 }

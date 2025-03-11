@@ -18,12 +18,11 @@ package com.rundeck.repository.client.repository
 import com.dtolabs.rundeck.core.storage.StorageConverterPluginAdapter
 import com.dtolabs.rundeck.core.storage.StorageTimestamperConverter
 import com.dtolabs.rundeck.core.storage.StorageUtil
-import com.rundeck.plugin.template.FilesystemArtifactTemplateGenerator
-import com.rundeck.plugin.template.PluginType
 import com.rundeck.repository.ResponseBatch
 import com.rundeck.repository.api.RepositoryOwner
 import com.rundeck.repository.api.RepositoryType
 import com.rundeck.repository.artifact.RepositoryArtifact
+import com.rundeck.repository.client.TestPluginGenerator
 import com.rundeck.repository.client.TestUtils
 import com.rundeck.repository.client.exceptions.ArtifactNotFoundException
 import com.rundeck.repository.client.util.ArtifactUtils
@@ -44,11 +43,9 @@ class StorageTreeRepositoryArtifactRepositoryTest extends Specification {
     @Shared
     File buildDir
     @Shared
-    String builtNotifierPath = "notifier/build/libs/notifier-0.1.0.jar" //assumes buildDir directory
+    File buildNotifierPlugin
     @Shared
     StorageTreeArtifactRepository repo
-    @Shared
-    FilesystemArtifactTemplateGenerator generator
 
     def setupSpec() {
         repoBase = File.createTempDir()
@@ -70,9 +67,8 @@ class StorageTreeRepositoryArtifactRepositoryTest extends Specification {
         repoDef.owner = RepositoryOwner.PRIVATE
         repo = new StorageTreeArtifactRepository(StorageUtil.asStorageTree(timestamptree), repoDef)
         repo.manifestService.syncManifest()
-        generator = new FilesystemArtifactTemplateGenerator()
-        generator.generate("Notifier", PluginType.java, "Notification", buildDir.absolutePath)
-        TestUtils.buildGradle(new File(buildDir, "notifier"))
+        buildNotifierPlugin=TestPluginGenerator.generate("Notifier", "jar", "Notification", buildDir.absolutePath,[version:'0.1.0'])
+
     }
 
     def "SaveArtifactMetaToRepo"() {
@@ -87,7 +83,7 @@ class StorageTreeRepositoryArtifactRepositoryTest extends Specification {
 
     def "UploadArtifactBinary"() {
         when:
-        ResponseBatch rbatch = repo.uploadArtifact(new File(buildDir,builtNotifierPath).newInputStream())
+        ResponseBatch rbatch = repo.uploadArtifact(buildNotifierPlugin.newInputStream())
 
         then:
         rbatch.batchSucceeded()

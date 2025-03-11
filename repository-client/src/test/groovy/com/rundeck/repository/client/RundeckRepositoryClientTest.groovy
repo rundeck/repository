@@ -16,8 +16,6 @@
 package com.rundeck.repository.client
 
 import com.dtolabs.rundeck.core.storage.StorageTreeImpl
-import com.rundeck.plugin.template.FilesystemArtifactTemplateGenerator
-import com.rundeck.plugin.template.PluginType
 import com.rundeck.repository.client.artifact.RundeckRepositoryArtifact
 import com.rundeck.repository.client.artifact.StorageTreeArtifactInstaller
 import com.rundeck.repository.client.repository.RundeckRepositoryFactory
@@ -35,23 +33,20 @@ class RundeckRepositoryClientTest extends Specification {
     @Shared
     File buildDir
     @Shared
-    String builtNotifierPath = "notifier/build/libs/notifier-0.1.0.jar" //assumes buildDir directory
-    @Shared
-    FilesystemArtifactTemplateGenerator generator
+    String builtNotifierPath = "notifier-0.1.0.jar"
 
     def setupSpec() {
         buildDir = File.createTempDir()
         println buildDir.absolutePath
-        repoRoot = new File("/tmp/repository-repo")
+        repoRoot = File.createTempDir()
         if(repoRoot.exists()) repoRoot.deleteDir()
         repoRoot.mkdirs()
-        new File("/tmp/repository-repo/manifest.json") << "{}" //Init empty manifest
-        generator = new FilesystemArtifactTemplateGenerator()
-        generator.generate("Notifier", PluginType.java, "Notification", buildDir.absolutePath)
-        TestUtils.buildGradle(new File(buildDir,"notifier"))
-        generator.generate("ScriptIt", PluginType.script,"NodeExecutor",buildDir.absolutePath)
-        TestUtils.zipDir(buildDir.absolutePath+"/scriptit")
-        generator.generate("DownloadMe", PluginType.script,"WorkflowNodeStep",buildDir.absolutePath)
+        new File(repoRoot,"manifest.json") << "{}" //Init empty manifest
+        TestPluginGenerator.generate("notifier-0.1.0", "jar","Notification",buildDir.absolutePath)
+
+        TestPluginGenerator.generate("scriptit", "script","NodeExecutor",buildDir.absolutePath)
+
+        TestPluginGenerator.generate("downloadme", "script","WorkflowNodeStep",buildDir.absolutePath)
     }
 
     def "Upload Artifact To Repo"() {
@@ -62,7 +57,10 @@ class RundeckRepositoryClientTest extends Specification {
 
         def response = client.uploadArtifact("private",new File(buildDir,builtNotifierPath).newInputStream())
         def response2 = client.uploadArtifact("private",new File(buildDir.absolutePath+"/scriptit.zip").newInputStream())
-        def response3 = client.saveNewArtifact("private",ArtifactUtils.createArtifactFromRundeckPluginYaml(new File(buildDir.absolutePath+"/downloadme/plugin.yaml").newInputStream()))
+
+        def yaml = TestPluginGenerator.createPluginYaml("downloadme", "WorkflowNodeStep")
+        def stream = new ByteArrayInputStream(yaml.getBytes())
+        def response3 = client.saveNewArtifact("private",ArtifactUtils.createArtifactFromRundeckPluginYaml(stream))
 
         then:
         response.batchSucceeded()
@@ -73,7 +71,7 @@ class RundeckRepositoryClientTest extends Specification {
 
     def "Install Artifact To Plugin Storage"() {
         setup:
-        File pluginRoot = new File("/tmp/repository-plugins")
+        File pluginRoot = File.createTempDir()
         if(pluginRoot.exists()) pluginRoot.deleteDir()
         pluginRoot.mkdirs()
 

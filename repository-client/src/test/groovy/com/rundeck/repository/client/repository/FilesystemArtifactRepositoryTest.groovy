@@ -17,11 +17,10 @@ package com.rundeck.repository.client.repository
 
 import com.dtolabs.rundeck.core.plugins.PluginUtils
 import com.google.common.io.Files
-import com.rundeck.plugin.template.FilesystemArtifactTemplateGenerator
-import com.rundeck.plugin.template.PluginType
 import com.rundeck.repository.Constants
 import com.rundeck.repository.ResponseBatch
 import com.rundeck.repository.artifact.RepositoryArtifact
+import com.rundeck.repository.client.TestPluginGenerator
 import com.rundeck.repository.client.TestUtils
 import com.rundeck.repository.client.exceptions.ArtifactNotFoundException
 import com.rundeck.repository.client.util.ArtifactUtils
@@ -41,11 +40,10 @@ class FilesystemArtifactRepositoryTest extends Specification {
     @Shared
     File buildDir
     @Shared
-    String builtNotifierPath = "notifier/build/libs/notifier-0.1.0.jar" //assumes buildDir directory
+    File buildNotifierJar
     @Shared
     FilesystemArtifactRepository repo
-    @Shared
-    FilesystemArtifactTemplateGenerator generator
+
 
     def setupSpec() {
         buildDir = File.createTempDir()
@@ -61,9 +59,7 @@ class FilesystemArtifactRepositoryTest extends Specification {
         repoDef.owner = RepositoryOwner.PRIVATE
         repo = new FilesystemArtifactRepository(repoDef)
         repo.manifestService.syncManifest()
-        generator = new FilesystemArtifactTemplateGenerator()
-        generator.generate("Notifier", PluginType.java, "Notification", buildDir.absolutePath)
-        TestUtils.buildGradle(new File(buildDir, "notifier"))
+        buildNotifierJar=TestPluginGenerator.generate("Notifier", "jar", "Notification", buildDir.absolutePath,[version:'0.1.0'])
     }
 
     def "SaveArtifactMetaToRepo"() {
@@ -78,7 +74,7 @@ class FilesystemArtifactRepositoryTest extends Specification {
 
     def "UploadArtifactBinary"() {
         when:
-        ResponseBatch rbatch = repo.uploadArtifact(new File(buildDir,builtNotifierPath).newInputStream())
+        ResponseBatch rbatch = repo.uploadArtifact(buildNotifierJar.newInputStream())
 
         then:
         rbatch.batchSucceeded()
@@ -109,11 +105,12 @@ class FilesystemArtifactRepositoryTest extends Specification {
         repo.manifestService.listArtifacts().size() == 2
         String pluginName = "ManualManifestTester"
         String manualPlacementPluginId = PluginUtils.generateShaIdFromName(pluginName)
-        generator.generate(pluginName, PluginType.script, "NodeExecutor", buildDir.absolutePath)
-        Files.copy(
-                new File(buildDir, "${pluginName.toLowerCase()}/${Constants.ARTIFACT_META_FILE_NAME}"),
-                new File(repoBase, "artifacts/${manualPlacementPluginId}-0.1.yaml")
-        )
+        String yaml=TestPluginGenerator.createPluginYaml(pluginName, "NodeExecutor")
+//        Files.copy(
+//                new File(buildDir, "${pluginName.toLowerCase()}/${Constants.ARTIFACT_META_FILE_NAME}"),
+//                new File(repoBase, "artifacts/${manualPlacementPluginId}-0.1.yaml")
+//        )
+        new File(repoBase, "artifacts/${manualPlacementPluginId}-0.1.yaml")<<yaml
         repo.recreateAndSaveManifest()
 
         then:

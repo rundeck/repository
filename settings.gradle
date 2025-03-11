@@ -1,5 +1,4 @@
 rootProject.name = 'rundeck-repository-project'
 
 include	'repository-api',
-	'repository-client',
-	'repository-cli'
+	'repository-client'

@@ -17,8 +17,7 @@ package com.rundeck.repository.client.manifest
 
 import com.dtolabs.rundeck.core.plugins.PluginUtils
 import com.google.common.io.Files
-import com.rundeck.plugin.template.FilesystemArtifactTemplateGenerator
-import com.rundeck.plugin.template.PluginType
+import com.rundeck.repository.client.TestPluginGenerator
 import com.rundeck.repository.client.TestUtils
 import com.rundeck.repository.manifest.ArtifactManifest
 import com.rundeck.repository.manifest.ManifestEntry
@@ -31,17 +30,15 @@ class FilesystemManifestCreatorTest extends Specification {
         setup:
         File tempManifestDir = File.createTempDir()
         File tempScriptDir = File.createTempDir()
-        FilesystemArtifactTemplateGenerator generator = new FilesystemArtifactTemplateGenerator()
         String artifactId = PluginUtils.generateShaIdFromName("Script Plugin Multiver")
-        generator.generate("Script Plugin Multiver", PluginType.script, "NodeExecutor", tempScriptDir.absolutePath)
+        File built=TestPluginGenerator.generate("Script Plugin Multiver", "script", "NodeExecutor", tempScriptDir.absolutePath)
         TestUtils.zipDir(tempScriptDir.absolutePath+"/script-plugin-multiver")
-        Files.move(new File(tempScriptDir,"script-plugin-multiver.zip"),new File(tempManifestDir,"${artifactId}-1.0.0.zip"))
+        Files.move(built,new File(tempManifestDir,"${artifactId}-1.0.0.zip"))
         Thread.sleep(1000)
-        TestUtils.setVersion(tempScriptDir.absolutePath+"/script-plugin-multiver/plugin.yaml","1.1")
-        TestUtils.zipDir(tempScriptDir.absolutePath+"/script-plugin-multiver")
-        Files.move(new File(tempScriptDir,"script-plugin-multiver.zip"),new File(tempManifestDir,"${artifactId}-1.1.zip"))
-        generator.generate("Other Artifact", PluginType.script, "WorkflowNodeStep", tempScriptDir.absolutePath)
-        Files.move(new File(tempScriptDir,"other-artifact/plugin.yaml"),new File(tempManifestDir,"plugin.yaml"))
+        File built2=TestPluginGenerator.generate("Script Plugin Multiver", "script", "NodeExecutor", tempScriptDir.absolutePath,[version:'1.1'])
+        Files.move(built2,new File(tempManifestDir,"${artifactId}-1.1.zip"))
+        File otherfile=TestPluginGenerator.generate("Other Artifact", "script", "WorkflowNodeStep", tempScriptDir.absolutePath)
+        Files.move(otherfile,new File(tempManifestDir,otherfile.name))
 
 
         when:
