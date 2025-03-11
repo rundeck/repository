@@ -32,15 +32,15 @@ class ArtifactUtilsTest extends Specification {
         setup:
         File buildDir = File.createTempDir()
 
-        TestPluginGenerator.generate("MyJavaPlugin", "java","Notification",buildDir.absolutePath)
-        TestPluginGenerator.generate("MyScriptPlugin", "script","FileCopier",buildDir.absolutePath)
-        TestPluginGenerator.generate("ManualZipScriptPlugin", "script","FileCopier",buildDir.absolutePath)
+        File jarplugin=TestPluginGenerator.generate("MyJavaPlugin", "java","Notification",buildDir.absolutePath)
+        File myscriptplugin=TestPluginGenerator.generate("MyScriptPlugin", "script","FileCopier",buildDir.absolutePath)
+        File manualzipplugin=TestPluginGenerator.generate("ManualZipScriptPlugin", "script","FileCopier",buildDir.absolutePath)
 
 
         when:
-        def jarMeta = ArtifactUtils.getMetaFromUploadedFile(new File(buildDir,"MyJavaPlugin.jar"))
-        def scriptMeta = ArtifactUtils.getMetaFromUploadedFile(new File(buildDir,"MyScriptPlugin.zip"))
-        def manualZipScriptMeta = ArtifactUtils.getMetaFromUploadedFile(new File(buildDir,"ManualZipScriptPlugin.zip"))
+        def jarMeta = ArtifactUtils.getMetaFromUploadedFile(jarplugin)
+        def scriptMeta = ArtifactUtils.getMetaFromUploadedFile(myscriptplugin)
+        def manualZipScriptMeta = ArtifactUtils.getMetaFromUploadedFile(manualzipplugin)
 
         then:
         jarMeta.name == "MyJavaPlugin"
