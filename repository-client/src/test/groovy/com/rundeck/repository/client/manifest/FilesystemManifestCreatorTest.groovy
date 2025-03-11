@@ -32,7 +32,7 @@ class FilesystemManifestCreatorTest extends Specification {
         File tempScriptDir = File.createTempDir()
         String artifactId = PluginUtils.generateShaIdFromName("Script Plugin Multiver")
         File built=TestPluginGenerator.generate("Script Plugin Multiver", "script", "NodeExecutor", tempScriptDir.absolutePath)
-        TestUtils.zipDir(tempScriptDir.absolutePath+"/script-plugin-multiver")
+
         Files.move(built,new File(tempManifestDir,"${artifactId}-1.0.0.zip"))
         Thread.sleep(1000)
         File built2=TestPluginGenerator.generate("Script Plugin Multiver", "script", "NodeExecutor", tempScriptDir.absolutePath,[version:'1.1'])
