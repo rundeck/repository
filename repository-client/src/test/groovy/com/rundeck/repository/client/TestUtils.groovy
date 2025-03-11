@@ -23,35 +23,6 @@ import com.rundeck.repository.manifest.ManifestEntry
 
 class TestUtils {
 
-    static void buildGradle(File baseDir) {
-        Process p = new ProcessBuilder("gradle","build").directory(baseDir).start()
-        p.waitFor()
-    }
-
-    static void gradlePluginZip(File baseDir) {
-        Process p = new ProcessBuilder("gradle","pluginZip").directory(baseDir).start()
-        p.waitFor()
-    }
-
-    static void zipDir(final String dirToZip) {
-        File rootDir = new File(dirToZip)
-        def zipp = new  ProcessBuilder("zip","-r",rootDir.name+".zip", rootDir.name+"/").directory(rootDir.parentFile).start()
-        zipp.waitFor()
-    }
-
-    static void setVersion(final String sartifactFile, final String newVersion) {
-        File artifactFile = new File(sartifactFile)
-        List<String> artifactLines = artifactFile.readLines()
-        artifactFile.withOutputStream { out ->
-            artifactLines.each { line ->
-                if(line.startsWith("version:")) {
-                    out << "version: '${newVersion}'\n"
-                } else {
-                    out << line + "\n"
-                }
-            }
-        }
-    }
 
     static ManifestEntry createEntry(String name, Map artifactProps = [:] ) {
         Map props = [:]
