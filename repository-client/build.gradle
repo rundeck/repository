@@ -1,7 +1,7 @@
 plugins {
+    id 'java-library'
     // Apply the groovy plugin to add support for Groovy
     id 'groovy'
-    id 'maven'
 }
 
 group = 'com.rundeck.repository'
@@ -10,29 +10,34 @@ version = "0.12.0"
 
 // In this section you declare where to find the dependencies of your project
 repositories {
-    // Use jcenter for resolving your dependencies.
     // You can declare any Maven/Ivy/file repository here.
     mavenLocal()
-    maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
-    jcenter()
+    mavenCentral()
     maven { url "https://jitpack.io" }
+}
+configurations {
+    implementation {
+        exclude(group: "org.codehaus.groovy", module: "groovy-test")
+        exclude(group: "org.codehaus.groovy", module: "groovy-test-junit5")
+        exclude(group: "org.codehaus.groovy", module: "groovy-testng")
+    }
 }
 
 dependencies {
     // Use the latest Groovy version for building this library
-    compile 'org.codehaus.groovy:groovy-all:2.4.17'
-    compile project(":repository-api")
-    compile "org.rundeck:rundeck-core:3.1.0-20190731"
-    compile "org.rundeck:rundeck-storage-filesys:3.1.0-20190731"
-    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.10.0'
-    compile 'org.bouncycastle:bcprov-jdk15on:1.62'
-    compile 'org.bouncycastle:bcpg-jdk15on:1.62'
-    compile "com.squareup.okhttp3:okhttp:3.12.6"
-    compile "ch.qos.logback:logback-classic:1.2.0"
+    implementation('org.codehaus.groovy:groovy-all:3.0.21')
+    api project(":repository-api")
+    api "org.rundeck:rundeck-core:${rundeckVersion}"
+    api "org.rundeck:rundeck-storage-filesys:${rundeckVersion}"
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.10.0'
+    implementation 'org.bouncycastle:bcprov-jdk15on:1.62'
+    implementation 'org.bouncycastle:bcpg-jdk15on:1.62'
+    implementation "com.squareup.okhttp3:okhttp:3.12.6"
+    api "org.slf4j:slf4j-api:1.7.32"
     // Use the awesome Spock testing and specification framework
-    testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
-    testCompile 'com.github.rundeck:plugin-bootstrap:0.4.2'
-    testCompile "com.squareup.okhttp3:mockwebserver:3.9.1"
+    testImplementation 'org.spockframework:spock-core:2.3-groovy-3.0'
+    testImplementation 'com.github.rundeck:plugin-bootstrap:0.4.12'
+    testImplementation "com.squareup.okhttp3:mockwebserver:3.9.1"
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
@@ -44,6 +49,9 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
     from javadoc.destinationDir
 }
+test{
+    useJUnitPlatform()
+}
 
 artifacts {
     archives sourcesJar
@@ -51,24 +59,4 @@ artifacts {
 }
 
 
-task('createPom').doLast {
-    pom {
-        project {
-            artifactId 'repository-client'
-            groupId "org.rundeck.repository"
-            inceptionYear '2018'
-            packaging 'jar'
-            version version
-            name( 'Rundeck Repository Client')
-            url 'http://rundeck.org'
-            licenses {
-                license {
-                    name 'The Apache Software License, Version 2.0'
-                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    distribution 'repo'
-                }
-            }
-        }
-    }.writeTo("pom.xml")
-}
 
