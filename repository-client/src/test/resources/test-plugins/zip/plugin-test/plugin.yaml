@@ -9,7 +9,7 @@ tags:
     - script
     - FileCopier
 date: 2025-03-11T17:51:01.989Z
-version: 1.0.0
+version: $version$
 providers:
     - name: $name$
       service: $category$
